@@ -2,15 +2,12 @@
 // Created April 14 2017 by Trent Ziemer
 // Last updated XXX by Trent Ziemer
 
-// Includes map fixture and sensor model classes
-//#include <ispl/models.h>
 
 // File IO for C++
 #include <iostream>
 #include <fstream>
 
 #include <ros/ros.h>
-
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_ros/point_cloud.h>
@@ -18,6 +15,10 @@
 
 //#include <std_msgs/Int16.h>
 //#include <std_msgs/Float32.h>
+
+#include <wmp/point_filter.h>
+#include <wmp/cloud_compressor.h>
+#include <wmp/grid.h>
 
 // Define shorthand names for PCL points and clouds
 typedef pcl::PointXYZ Point;
@@ -119,7 +120,7 @@ bool getDataFromFile(std::string filename)
     bool getting_y = false;
     bool getting_z = false;
 
-    PointFilter point_filter;
+    PointFilter pointFilter;
     float value;
     float x;
     float y;
@@ -140,14 +141,14 @@ bool getDataFromFile(std::string filename)
         else if(getting_z)
         {
         	//ROS_INFO("Read a Point(%f, %f, %f)", x, y, value);
-        	point_filter.setPoint(Point(x, y, value));
+        	pointFilter.setPoint(Point(x, y, value));
 
-            if(point_filter.translateAndShrink())
+            if(pointFilter.translateAndShrink())
         	{
-        		g_shrunk_cloud.push_back(point_filter.getPoint());
-			    if(point_filter.cropPoint())
+        		g_shrunk_cloud.push_back(pointFilter.getPoint());
+			    if(pointFilter.cropPoint())
 	        	{
-					g_filtered_cloud.push_back(point_filter.getPoint());
+					g_filtered_cloud.push_back(pointFilter.getPoint());
 	        	}	
         	}
 
@@ -187,11 +188,16 @@ int main(int argc, char **argv)
 		ROS_WARN("FAILED to get file data!");
 	}
 
+	CloudCompressor cloudCompressor;
+	cloudCompressor.setCloud(g_shrunk_cloud);
+	cloudCompressor.compress();
+
+
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
 	ros::Publisher filtered_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("fpc", 1);
 	
-   	int time_to_pub = 10000; // ms
-	ros::Rate count_rate(500); // ms
+   	int time_to_pub = 100;
+	ros::Rate count_rate(2); 
 	int count = 0;
 
    	while(ros::ok() && (count < time_to_pub))
