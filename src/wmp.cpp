@@ -10,12 +10,14 @@
 #include <fstream>
 
 #include <ros/ros.h>
-//#include <std_msgs/Int16.h>
-//#include <std_msgs/Float32.h>
+
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl/point_types.h>
+
+//#include <std_msgs/Int16.h>
+//#include <std_msgs/Float32.h>
 
 // Define shorthand names for PCL points and clouds
 typedef pcl::PointXYZ Point;
@@ -36,28 +38,11 @@ bool getDataFromFile(std::string filename)
         ROS_WARN("%s IS NOT OPEN", filename.c_str());
     }
 
-    float value;
-    float value2;
-    int j = 1;
-    if(0) // THIS IS A HACK DONT EVEN BOTHER TRYING TO COMPREHEND
-    {
-    	while(input_data >> value)
-    	{
-    		value2 =  1.732051*j/(88*sqrt(3));
-    		for(int i = 0; i < value; i++)
-    		{
-    			g_point_cloud_data.push_back(Point(value2, value2, value2));
-    		}
-    		// ROS_INFO("Added %f of %f", value, value2*sqrt(3));
-    		j++;
-    	}
-    }
-    else // This is real...a real state machine
-    {
     bool getting_x = true;
     bool getting_y = false;
     bool getting_z = false;
 
+    float value;
     float x;
     float y;
     while(input_data >> value)
@@ -82,7 +67,7 @@ bool getDataFromFile(std::string filename)
         	getting_x = true;
         }
     }
-    }
+
     if(g_point_cloud_data.points.size() > 0)
     {
     	return true;
@@ -101,20 +86,40 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("~");
     nh_ptr = &nh;
 
+    std::string filename;
+
 	if(!nh_ptr->getParam("filename", filename))
 	{
 		ROS_WARN("Failed to get filename for input data source!");
 	}
 
+	if(!getDataFromFile(filename))
+	{
+		ROS_WARN("NO DATA FROM FILE!?!?!?");
+	}
+
+	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
+	
+   	int time_to_wait = 10000; // ms
+	ros::Rate count_rate(100); // ms
+	int count = 0;
+
+   	while(ros::ok() && (count < time_to_wait))
+   	{
+		g_point_cloud_data.header.frame_id = "lidar_link";
+		input_point_cloud_pub.publish(g_point_cloud_data);
+		
+		ROS_INFO("Pubbed cloud with maybe points in it!");
+			
+		ros::spinOnce();
+		count_rate.sleep();
+		count++;
+	}
 
     bool test_active = true;
     bool test_passed = true;
 
-    //ros::Subscriber pc_sub = nh.subscribe("/ispl/point_cloud", 1, cloudCB);
-    
-    // Publish point cloud for reference by other nodes, not currently really useful
-	//ros::Publisher pc_pub = nh.advertise<sensor_msgs::PointCloud2> ("/ispl/meas_pc", 1);
-	//ros::Publisher map_pub = nh.advertise<sensor_msgs::PointCloud2> ("/ispl/map_pc", 1);
+    //ros::Subscriber pc_sub = nh.subscribe("pc", 1, cloudCB);
 
     if(test_active == true)
     {

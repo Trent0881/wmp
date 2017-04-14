@@ -8,11 +8,6 @@
 		<param name="filename" value="/home/mordoc/data/oakland3_data.csv" />
 
 	</node>
-
-	<!-- Run the test node wrapper -->
-	<node pkg="ispl" type="test_ispl" name="test_ispl" output="screen"> 
-	</node>
-
 </launch>
 
 
