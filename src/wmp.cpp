@@ -59,10 +59,10 @@ PointFilter::PointFilter()
 	first_time = true;
 	scale_factor = 0.08;
 	
-	x_min = -0.25;
-	x_max = 0.25;
-	y_min = -0.25;
-	y_max = 0.25;
+	x_min = -2.5;
+	x_max = 2.5;
+	y_min = -2.5;
+	y_max = 2.5;
 	z_min = -0.3;
 	z_max = 0.12;
 }
