@@ -1,0 +1,42 @@
+<launch> 
+	<!-- Start point cloud rosbag play to provide data
+	<node pkg="rosbag" type="play" name="rosbag_babs_record"  args="/home/mordoc/ROSBAG_NAME">
+		<remap from="/front_wobbler/point_cloud" to="" />
+	</node> -->
+
+	<node pkg="wmp" type="wmp" name="wmp" output="screen">
+		<param name="filename" value="/home/mordoc/data/oakland3_data.csv" />
+
+	</node>
+
+	<!-- Run the test node wrapper -->
+	<node pkg="ispl" type="test_ispl" name="test_ispl" output="screen"> 
+	</node>
+
+</launch>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
