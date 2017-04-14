@@ -25,10 +25,87 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 // Point cloud of sensor measurements to be used to make our sensor model of parameters
 PointCloud g_point_cloud_data;
+PointCloud g_shrunk_cloud;
+PointCloud g_filtered_cloud;
 
 ros::NodeHandle * nh_ptr;
 
-// Mega-hacky function
+class PointFilter
+{
+public:
+	PointFilter();
+	bool setPoint(Point new_point);
+	bool translateAndShrink();
+	bool cropPoint();
+	Point getPoint(); 
+
+private:
+
+	float x_min;
+	float x_max;
+	float y_min;
+	float y_max;
+	float z_min;
+	float z_max;
+
+	Point point;
+	Point center_point;
+	bool first_time;
+	float scale_factor;
+};
+
+PointFilter::PointFilter()
+{
+	first_time = true;
+	scale_factor = 0.08;
+	
+	x_min = -0.25;
+	x_max = 0.25;
+	y_min = -0.25;
+	y_max = 0.25;
+	z_min = -0.3;
+	z_max = 0.12;
+}
+
+bool PointFilter::setPoint(Point new_point)
+{
+	point = new_point;
+	if(first_time == true)
+	{
+		first_time = false;
+		// Transform the future points around this point
+		center_point = point;
+	}
+}
+
+bool PointFilter::translateAndShrink()
+{
+	// Translate to center the point around the center point, and shrink/expand by some constant factor for ease
+	Point placeholder_point(point.x - center_point.x, point.y - center_point.y, point.z - center_point.z);
+	point.x = (placeholder_point.x)*scale_factor;
+	point.y = (placeholder_point.y)*scale_factor;
+	point.z = (placeholder_point.z)*scale_factor;
+
+	return true;
+}
+
+bool PointFilter::cropPoint()
+{
+	if(point.x > x_max || point.x < x_min ||
+		point.y > y_max || point.y < y_min ||
+		point.z > z_max || point.z < z_min)
+	{
+		return false;
+	}
+	return true;
+}
+
+Point PointFilter::getPoint()
+{
+	return point;
+}
+
+// DESCRIPTION
 bool getDataFromFile(std::string filename)
 {
     std::ifstream input_data;
@@ -42,6 +119,7 @@ bool getDataFromFile(std::string filename)
     bool getting_y = false;
     bool getting_z = false;
 
+    PointFilter point_filter;
     float value;
     float x;
     float y;
@@ -61,14 +139,25 @@ bool getDataFromFile(std::string filename)
         }
         else if(getting_z)
         {
-        	//ROS_INFO("Adding Point(%f, %f, %f) to global cloud", x, y, value);
-			g_point_cloud_data.push_back(Point(x, y, value));
+        	//ROS_INFO("Read a Point(%f, %f, %f)", x, y, value);
+        	point_filter.setPoint(Point(x, y, value));
+
+            if(point_filter.translateAndShrink())
+        	{
+        		g_shrunk_cloud.push_back(point_filter.getPoint());
+			    if(point_filter.cropPoint())
+	        	{
+					g_filtered_cloud.push_back(point_filter.getPoint());
+	        	}	
+        	}
+
+        	// and cycle state machine...
 			getting_z = false;
         	getting_x = true;
         }
     }
 
-    if(g_point_cloud_data.points.size() > 0)
+    if(g_shrunk_cloud.points.size() > 0)
     {
     	return true;
     }
@@ -95,21 +184,26 @@ int main(int argc, char **argv)
 
 	if(!getDataFromFile(filename))
 	{
-		ROS_WARN("NO DATA FROM FILE!?!?!?");
+		ROS_WARN("FAILED to get file data!");
 	}
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
+	ros::Publisher filtered_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("fpc", 1);
 	
-   	int time_to_wait = 10000; // ms
-	ros::Rate count_rate(100); // ms
+   	int time_to_pub = 10000; // ms
+	ros::Rate count_rate(500); // ms
 	int count = 0;
 
-   	while(ros::ok() && (count < time_to_wait))
+   	while(ros::ok() && (count < time_to_pub))
    	{
-		g_point_cloud_data.header.frame_id = "lidar_link";
-		input_point_cloud_pub.publish(g_point_cloud_data);
+		g_shrunk_cloud.header.frame_id = "lidar_link";
+		input_point_cloud_pub.publish(g_shrunk_cloud);
+
+		g_filtered_cloud.header.frame_id = "lidar_link";
+		filtered_cloud_pub.publish(g_filtered_cloud);
+
 		
-		ROS_INFO("Pubbed cloud with maybe points in it!");
+		ROS_INFO("Pubbed a cloud or two!");
 			
 		ros::spinOnce();
 		count_rate.sleep();

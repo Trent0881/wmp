@@ -8,6 +8,10 @@
 		<param name="filename" value="/home/mordoc/data/oakland3_data.csv" />
 
 	</node>
+
+	<node pkg="rviz" type="rviz" name="rviz" args="-d /home/mordoc/ros_ws/src/wmp/rviz/wmp.rviz">
+	</node>
+
 </launch>
 
 
