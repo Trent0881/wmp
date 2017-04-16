@@ -27,4 +27,6 @@ private:
 	float grid_min_y;
 	float grid_max_x;
 	float grid_max_y;
+	float grid_width;
+	float grid_height;
 };

@@ -68,10 +68,50 @@ bool CloudCompressor::compressToGrid()
 	}
 
 	ROS_INFO("Grid is %f by %f meters in size!", grid_max_x - grid_min_x, grid_max_y - grid_min_y);
-	
-	obstacle_grid.info.width = grid_max_x - grid_min_x;
-	obstacle_grid.info.height = grid_max_y - grid_min_y;
 
+	ROS_INFO("and number of cells is %i by %i!", obstacle_grid.info.width, obstacle_grid.info.height);
+
+	grid_width = grid_max_x - grid_min_x;
+	grid_height = grid_max_y - grid_min_y;
+
+	obstacle_grid.info.resolution = grid_width/obstacle_grid.info.width;
+
+	ROS_INFO("Cell size is thus %f by %f meters in size!", grid_width/obstacle_grid.info.width, grid_width/obstacle_grid.info.width);
+	float cell_size_x = grid_width/obstacle_grid.info.width;
+	float cell_size_y = cell_size_x;
+
+	float cell_min_x = 0;
+	float cell_max_x = 0;
+	float cell_min_y = 0;
+	float cell_max_y = 0;
+
+	int points_in_cell;
+
+	ROS_INFO("Good1 size: %lu", compressed_cloud.points.size());
+	for (int i = 0; i < obstacle_grid.info.width; i++)
+	{
+		cell_min_x = cell_size_x*i;
+		cell_max_x = cell_min_x + cell_size_x;
+		for (int j = 0; j < obstacle_grid.info.height; j++)
+		{
+			cell_min_y = cell_size_y*j;
+			cell_max_y = cell_min_y + cell_size_y;
+			points_in_cell = 0;
+			for(int k = 0; k < compressed_cloud.points.size()/2; k++)
+			{
+				if( compressed_cloud.points[k].x > cell_min_x
+				 && compressed_cloud.points[k].x < cell_max_x
+				 && compressed_cloud.points[k].y > cell_min_y
+				 && compressed_cloud.points[k].y < cell_max_y)
+				{
+					points_in_cell++;
+				}
+			}
+			obstacle_grid.data.push_back(points_in_cell); // I HOPE THIS DOESNT EXCEED 100
+		}
+	}
+
+	ROS_INFO("Good1 size: %lu", obstacle_grid.data.size());
 	return true;
 }
 

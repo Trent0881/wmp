@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 		ROS_WARN("FAILED to get file data!");
 	}
 
-	CloudCompressor cloudCompressor(1000, 1000);
+	CloudCompressor cloudCompressor(100, 100);
 	
 	if(!cloudCompressor.setCloud(g_filtered_cloud))
 	{
@@ -139,9 +139,6 @@ int main(int argc, char **argv)
 		compressed_cloud_pub.publish(cloudCompressor.getCloud());
 
 		grid_pub.publish(cloudCompressor.getGrid());
-
-		
-		ROS_INFO("Published the same clouds again.");
 			
 		ros::spinOnce();
 		count_rate.sleep();
