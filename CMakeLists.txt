@@ -33,11 +33,12 @@ catkin_simple()
 # may add more of these lines for more nodes from the same package
 cs_add_executable(wmp src/wmp.cpp)
 
+cs_add_library(common src/common.cpp)
 cs_add_library(point_filter src/point_filter.cpp)
 cs_add_library(cloud_compressor src/cloud_compressor.cpp)
 cs_add_library(grid src/grid.cpp)
 
-target_link_libraries(wmp point_filter cloud_compressor grid)
+target_link_libraries(wmp common point_filter cloud_compressor grid)
 
 #the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package

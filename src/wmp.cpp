@@ -2,27 +2,15 @@
 // Created April 14 2017 by Trent Ziemer
 // Last updated XXX by Trent Ziemer
 
-
-// File IO for C++
-#include <iostream>
-#include <fstream>
-
-#include <ros/ros.h>
-#include <sensor_msgs/LaserScan.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <pcl_ros/point_cloud.h>
-#include <pcl/point_types.h>
-
-//#include <std_msgs/Int16.h>
-//#include <std_msgs/Float32.h>
-
+#include <wmp/common.h>
 #include <wmp/point_filter.h>
 #include <wmp/cloud_compressor.h>
 #include <wmp/grid.h>
 
-// Define shorthand names for PCL points and clouds
-typedef pcl::PointXYZ Point;
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+
+// File IO for C++
+#include <iostream>
+#include <fstream>
 
 // Point cloud of sensor measurements to be used to make our sensor model of parameters
 PointCloud g_point_cloud_data;
@@ -30,81 +18,6 @@ PointCloud g_shrunk_cloud;
 PointCloud g_filtered_cloud;
 
 ros::NodeHandle * nh_ptr;
-
-class PointFilter
-{
-public:
-	PointFilter();
-	bool setPoint(Point new_point);
-	bool translateAndShrink();
-	bool cropPoint();
-	Point getPoint(); 
-
-private:
-
-	float x_min;
-	float x_max;
-	float y_min;
-	float y_max;
-	float z_min;
-	float z_max;
-
-	Point point;
-	Point center_point;
-	bool first_time;
-	float scale_factor;
-};
-
-PointFilter::PointFilter()
-{
-	first_time = true;
-	scale_factor = 0.08;
-	
-	x_min = -2.5;
-	x_max = 2.5;
-	y_min = -2.5;
-	y_max = 2.5;
-	z_min = -0.3;
-	z_max = 0.12;
-}
-
-bool PointFilter::setPoint(Point new_point)
-{
-	point = new_point;
-	if(first_time == true)
-	{
-		first_time = false;
-		// Transform the future points around this point
-		center_point = point;
-	}
-}
-
-bool PointFilter::translateAndShrink()
-{
-	// Translate to center the point around the center point, and shrink/expand by some constant factor for ease
-	Point placeholder_point(point.x - center_point.x, point.y - center_point.y, point.z - center_point.z);
-	point.x = (placeholder_point.x)*scale_factor;
-	point.y = (placeholder_point.y)*scale_factor;
-	point.z = (placeholder_point.z)*scale_factor;
-
-	return true;
-}
-
-bool PointFilter::cropPoint()
-{
-	if(point.x > x_max || point.x < x_min ||
-		point.y > y_max || point.y < y_min ||
-		point.z > z_max || point.z < z_min)
-	{
-		return false;
-	}
-	return true;
-}
-
-Point PointFilter::getPoint()
-{
-	return point;
-}
 
 // DESCRIPTION
 bool getDataFromFile(std::string filename)
@@ -189,8 +102,16 @@ int main(int argc, char **argv)
 	}
 
 	CloudCompressor cloudCompressor;
-	cloudCompressor.setCloud(g_shrunk_cloud);
-	cloudCompressor.compress();
+	
+	if(!cloudCompressor.setCloud(g_shrunk_cloud))
+	{
+		ROS_WARN("Failed to set cloud data!");
+	}
+
+	if(!cloudCompressor.compress())
+	{
+		ROS_WARN("FAILED to compress cloud data!");
+	}
 
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
