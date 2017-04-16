@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
 	CloudCompressor cloudCompressor;
 	
-	if(!cloudCompressor.setCloud(g_shrunk_cloud))
+	if(!cloudCompressor.setCloud(g_filtered_cloud))
 	{
 		ROS_WARN("Failed to set cloud data!");
 	}
@@ -116,6 +116,7 @@ int main(int argc, char **argv)
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
 	ros::Publisher filtered_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("fpc", 1);
+	ros::Publisher compressed_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("cpc", 1);
 	
    	int time_to_pub = 100;
 	ros::Rate count_rate(2); 
@@ -129,8 +130,9 @@ int main(int argc, char **argv)
 		g_filtered_cloud.header.frame_id = "lidar_link";
 		filtered_cloud_pub.publish(g_filtered_cloud);
 
+		compressed_cloud_pub.publish(cloudCompressor.getCloud());
 		
-		ROS_INFO("Pubbed a cloud or two!");
+		ROS_INFO("Published the same clouds again.");
 			
 		ros::spinOnce();
 		count_rate.sleep();
@@ -139,8 +141,6 @@ int main(int argc, char **argv)
 
     bool test_active = true;
     bool test_passed = true;
-
-    //ros::Subscriber pc_sub = nh.subscribe("pc", 1, cloudCB);
 
     if(test_active == true)
     {

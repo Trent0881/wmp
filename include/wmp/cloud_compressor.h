@@ -7,10 +7,12 @@
 class CloudCompressor
 {
 public:
-	//CloudCompressor();
+	CloudCompressor();
 
 	bool setCloud(PointCloud);
-	bool compress();
+	bool compressFlat();
+	bool compressToGrid();
+	PointCloud getCloud();
 
 private:
 
