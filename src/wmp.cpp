@@ -101,23 +101,29 @@ int main(int argc, char **argv)
 		ROS_WARN("FAILED to get file data!");
 	}
 
-	CloudCompressor cloudCompressor;
+	CloudCompressor cloudCompressor(1000, 1000);
 	
 	if(!cloudCompressor.setCloud(g_filtered_cloud))
 	{
 		ROS_WARN("Failed to set cloud data!");
 	}
 
-	if(!cloudCompressor.compress())
+	if(!cloudCompressor.compressFlat())
 	{
 		ROS_WARN("FAILED to compress cloud data!");
 	}
 
+	if(!cloudCompressor.compressToGrid())
+	{
+		ROS_WARN("FAILED to compress map cloud to grid!");
+	}
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
 	ros::Publisher filtered_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("fpc", 1);
 	ros::Publisher compressed_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("cpc", 1);
 	
+	ros::Publisher grid_pub = nh.advertise<nav_msgs::OccupancyGrid>("obstacle_grid", 1);
+
    	int time_to_pub = 100;
 	ros::Rate count_rate(2); 
 	int count = 0;
@@ -131,6 +137,9 @@ int main(int argc, char **argv)
 		filtered_cloud_pub.publish(g_filtered_cloud);
 
 		compressed_cloud_pub.publish(cloudCompressor.getCloud());
+
+		grid_pub.publish(cloudCompressor.getGrid());
+
 		
 		ROS_INFO("Published the same clouds again.");
 			

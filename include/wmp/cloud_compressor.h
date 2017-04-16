@@ -7,15 +7,24 @@
 class CloudCompressor
 {
 public:
-	CloudCompressor();
+
+	CloudCompressor(float, float);
 
 	bool setCloud(PointCloud);
 	bool compressFlat();
 	bool compressToGrid();
+
 	PointCloud getCloud();
+	Grid getGrid();
 
 private:
 
 	PointCloud uncompressed_cloud;
 	PointCloud compressed_cloud;
+	Grid obstacle_grid;
+
+	float grid_min_x;
+	float grid_min_y;
+	float grid_max_x;
+	float grid_max_y;
 };
