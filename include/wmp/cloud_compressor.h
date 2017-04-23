@@ -17,6 +17,8 @@ public:
 	PointCloud getCloud();
 	Grid getGrid();
 
+	PointCloud new_cloud;
+
 private:
 
 	PointCloud uncompressed_cloud;

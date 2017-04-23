@@ -1,6 +1,6 @@
 // Wobbler Motion Planning node
 // Created April 14 2017 by Trent Ziemer
-// Last updated XXX by Trent Ziemer
+// Last updated April 23 2017 by Trent Ziemer
 
 #include <wmp/common.h>
 #include <wmp/point_filter.h>
@@ -16,6 +16,7 @@
 PointCloud g_point_cloud_data;
 PointCloud g_shrunk_cloud;
 PointCloud g_filtered_cloud;
+Point g_center_point;
 
 ros::NodeHandle * nh_ptr;
 
@@ -55,7 +56,7 @@ bool getDataFromFile(std::string filename)
         {
         	//ROS_INFO("Read a Point(%f, %f, %f)", x, y, value);
         	pointFilter.setPoint(Point(x, y, value));
-
+        	g_center_point = Point(x, y, value);
             if(pointFilter.translateAndShrink())
         	{
         		g_shrunk_cloud.push_back(pointFilter.getPoint());
@@ -101,7 +102,7 @@ int main(int argc, char **argv)
 		ROS_WARN("FAILED to get file data!");
 	}
 
-	CloudCompressor cloudCompressor(100, 100);
+	CloudCompressor cloudCompressor(200, 200);
 	
 	if(!cloudCompressor.setCloud(g_filtered_cloud))
 	{
@@ -124,6 +125,9 @@ int main(int argc, char **argv)
 	
 	ros::Publisher grid_pub = nh.advertise<nav_msgs::OccupancyGrid>("obstacle_grid", 1);
 
+
+	ros::Publisher new_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("npc", 1);
+
    	int time_to_pub = 100;
 	ros::Rate count_rate(2); 
 	int count = 0;
@@ -139,6 +143,10 @@ int main(int argc, char **argv)
 		compressed_cloud_pub.publish(cloudCompressor.getCloud());
 
 		grid_pub.publish(cloudCompressor.getGrid());
+
+cloudCompressor.new_cloud.header.frame_id = "lidar_link";
+
+		new_cloud_pub.publish(cloudCompressor.new_cloud);
 			
 		ros::spinOnce();
 		count_rate.sleep();
