@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 	}
 
 	ROS_INFO("Building planning graph object!");
-	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 50);
+	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 10);
 
 	ROS_INFO("Displaying planning graph list!");
 	for(int i = 0; i < planningGraph.getNodes().size(); i++)
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 		ROS_INFO("(%f, %f)", planningGraph.getNodes()[i].x, planningGraph.getNodes()[i].y);
 	}
 
-
+	planningGraph.connectNodes();
 
 
 

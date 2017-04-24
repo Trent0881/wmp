@@ -8,7 +8,7 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 {
 	ROS_INFO("Width = %d", occupancy_grid.info.width);
 	ROS_INFO("Height = %d", occupancy_grid.info.height);
-	
+
 	int grid_width = occupancy_grid.info.width;
 	int grid_height = occupancy_grid.info.height;
 
@@ -60,13 +60,47 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 	}
 }
 
+bool connectNodes()
+{
+	float distanceHeuristic;
+	for(int i = 0; i < nodeList.size(); i++)
+	{
+		for(int j = 0; j < nodeList.size(); j++)
+		{
+			if(i != j)
+			{
+				// For any two distinct nodes in our area with labels i and j...
+				distanceHeuristic = nodeList[i].distanceTo(&nodeList[j]);
+				if(distanceHeuristic < 0.5)
+				{
+					// ALSO NEED TO CHECK NON-INTERSECTION BEFORE ADDING EDGE AT ALL!!!!!!!
+					nodeList[i].addEdge(&nodeList[j], distanceHeuristic);
+				}
+			}
+		}
+	}
+}
+
 std::vector<GraphNode> FreeSpaceGraph::getNodes()
 {
 	return nodeList;
 }
 
+// Init
 GraphNode::GraphNode(float x_pos, float y_pos)
 {
 	x = x_pos;
 	y = y_pos;
+}
+
+// Check distance to another node
+float GraphNode::distanceTo(&GraphNode distantNode)
+{
+	return 0.1;
+}
+
+// CAREFUL!
+bool GraphNode::addEdge(&GraphNode distantNode, weight)
+{
+	return true;
 }
