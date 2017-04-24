@@ -6,7 +6,7 @@
 #include <wmp/point_filter.h>
 #include <wmp/cloud_compressor.h>
 #include <wmp/grid.h>
-
+#include <wmp/free_space_graph.h>
 
 // File IO for C++
 #include <iostream>
@@ -119,14 +119,27 @@ int main(int argc, char **argv)
 		ROS_WARN("FAILED to compress map cloud to grid!");
 	}
 
+	ROS_INFO("Building planning graph object!");
+	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 50);
+
+	ROS_INFO("Displaying planning graph list!");
+	for(int i = 0; i < planningGraph.getNodes().size(); i++)
+	{
+		ROS_INFO("(%f, %f)", planningGraph.getNodes()[i].x, planningGraph.getNodes()[i].y);
+	}
+
+
+
+
+
+
+	ROS_INFO("Done...(?)");
+
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
 	ros::Publisher filtered_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("fpc", 1);
 	ros::Publisher compressed_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("cpc", 1);
 	
 	ros::Publisher grid_pub = nh.advertise<nav_msgs::OccupancyGrid>("obstacle_grid", 1);
-
-
-	ros::Publisher new_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("npc", 1);
 
    	int time_to_pub = 100;
 	ros::Rate count_rate(2); 
@@ -143,10 +156,6 @@ int main(int argc, char **argv)
 		compressed_cloud_pub.publish(cloudCompressor.getCloud());
 
 		grid_pub.publish(cloudCompressor.getGrid());
-
-cloudCompressor.new_cloud.header.frame_id = "lidar_link";
-
-		new_cloud_pub.publish(cloudCompressor.new_cloud);
 			
 		ros::spinOnce();
 		count_rate.sleep();

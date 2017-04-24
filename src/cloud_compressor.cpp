@@ -108,7 +108,6 @@ bool CloudCompressor::compressToGrid()
 	float cell_max_y;
 
 	int points_in_cell;
-	int totalDots = 0;
 
 	ROS_INFO("Cloud size: %lu", compressed_cloud.points.size());
 	
@@ -133,8 +132,6 @@ bool CloudCompressor::compressToGrid()
 		{		
 			cell_min_y = cell_max_y;
 			cell_max_y = cell_min_y + cell_size_y;
-			
-			//ROS_INFO("Checking if pt is within bounds (%f, %f) to (%f, %f).", cell_min_x, cell_min_y, cell_max_x, cell_max_y);
 
 			for(int k = 0; k < compressed_cloud.points.size(); k++)
 			{
@@ -145,32 +142,17 @@ bool CloudCompressor::compressToGrid()
 				 && compressed_cloud.points[k].y <= cell_max_y)
 				{
 					points_in_cell++;
-					new_cloud.push_back(compressed_cloud.points[k]);
-					points_in_cell = 100;
-					//ROS_INFO("Cloud pts = %lu, totalDots = %d", compressed_cloud.points.size(), totalDots);
-					//compressed_cloud.points.erase(std::remove(compressed_cloud.points.begin(), compressed_cloud.points.end(), k));
-					totalDots++;
-				}
-
-				// SEPERATE SANITY CHECK in-loop
-				if( compressed_cloud.points[k].x > x_max
-				 || compressed_cloud.points[k].x < x_min
-				 || compressed_cloud.points[k].y > y_max
-				 || compressed_cloud.points[k].y < y_min)
-				{
-
-					ROS_INFO("OOBs %lu %d", compressed_cloud.points.size(), totalDots);
+					//points_in_cell = 100;
 				}
 			}
 
-			obstacle_grid.data.push_back(points_in_cell); // I HOPE THIS DOESNT EXCEED 100
-			points_in_cell = 0;
+			obstacle_grid.data.push_back(30*sqrt(sqrt(points_in_cell))); // I HOPE THIS DOESNT EXCEED 100
 
+			points_in_cell = 0;
 		}
 	}
 
 	ROS_INFO("Grid size: %lu", obstacle_grid.data.size());
-	ROS_INFO("Total dots: %d", totalDots);
 
 	return true;
 }

@@ -37,8 +37,9 @@ cs_add_library(common src/common.cpp)
 cs_add_library(point_filter src/point_filter.cpp)
 cs_add_library(cloud_compressor src/cloud_compressor.cpp)
 cs_add_library(grid src/grid.cpp)
+cs_add_library(free_space_graph src/free_space_graph.cpp)
 
-target_link_libraries(wmp common point_filter cloud_compressor grid)
+target_link_libraries(wmp common point_filter cloud_compressor grid free_space_graph)
 
 #the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package
