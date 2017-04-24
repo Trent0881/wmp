@@ -125,12 +125,10 @@ int main(int argc, char **argv)
 	ROS_INFO("Displaying planning graph list!");
 	for(int i = 0; i < planningGraph.getNodes().size(); i++)
 	{
-		ROS_INFO("(%f, %f)", planningGraph.getNodes()[i].x, planningGraph.getNodes()[i].y);
+		ROS_INFO("(%d, %d)", planningGraph.getNodes()[i].x, planningGraph.getNodes()[i].y);
 	}
 
 	planningGraph.connectNodes();
-
-
 
 
 	ROS_INFO("Done...(?)");

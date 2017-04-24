@@ -9,10 +9,12 @@ class GraphNode
 public:
 	GraphNode(float, float);
 	
-	float distanceTo(*GraphNode);
-	bool addEdge(*GraphNode, float);
+	float distanceTo(GraphNode);
+	bool addEdge(GraphNode, float);
 	float x;
 	float y;
+
+	float checkConnectivity(GraphNode);
 
 private:
 
