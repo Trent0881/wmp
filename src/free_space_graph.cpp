@@ -103,31 +103,69 @@ float GraphNode::checkConnectivity(GraphNode distantNode)
 {
 	float distance;
 	distance = sqrt(pow((distantNode.x - x),2) + pow((distantNode.y - y),2));
-	if(distance >  0.5)
+	if(distance >  0.3)
 	{
-		// Preemptive failure
+		// Preemptive failure, due to too far away. The integer "-1" is the error code for this case.
 		return -1;
 	}
 	else
 	{
 		// Check if there is an intersection between the line segment between these two nodes and any occupied cell on the grid
 
-		// For all line segments in rectangular sub-grid...
+		// For all line segments in rectangular sub-grid...?
+
+		/*
 		int smaller_x = min(x, distantNode.x);
 		int larger_x = max(x, distantNode.x);
 		int smaller_y = min(y, distantNode.y);
 		int larger_y = max(y, distantNode.y);
-
-		for(int i = smaller_x; i <= larger_x; i++)
+		*/
+		if (distantNode.x > x && distantNode.y > y)
 		{
-			for(int j = smaller_y; j <= larger_y; j++))
-			{
-				if(doIntersect(self, distantNode))
-				{
+			// First quadrant
 
+			for(int i = (x - 0.5); i <= (distantNode.x - 0.5); i++)
+			{
+				for(int j = (y - 0.5); i <= (distantNode.y - 0.5); j++)
+				{
+					GraphNode P(i, j);
+					GraphNode Q(i + 1, j);
+					if(doIntersect(*this, distantNode, P, Q))
+					{
+						ROS_INFO("Path (%d, %d) -> (%d, %d) intersects line segment (%d, %d) -> (%d, %d)", 
+								x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
+						return -1;
+					}
+
+					P.x = i + 1;
+					P.y = j - 1;
+					
+					if(doIntersect(*this, distantNode, P, Q))
+					{
+						ROS_INFO("Path (%d, %d) -> (%d, %d) intersects line segment (%d, %d) -> (%d, %d)", 
+								x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
+						return -1;
+					}
 				}
 			}
 		}
+		else if(distantNode.x < x && distantNode.y > y)
+		{
+			// Second quadrant
+		}
+		else if(distantNode.x < x && distantNode.y < y)
+		{
+			// Third quadrant
+		}
+		else if(distantNode.x > x && distantNode.y < y)
+		{
+			// Fourth quadrant
+		}
+		else
+		{
+			ROS_INFO("JUST BTW '+' happened!");
+		}
+
 
 	}
 }
@@ -137,9 +175,6 @@ bool GraphNode::addEdge(GraphNode distantNode, float weight)
 {
 	return true;
 }
-
-
-
 
 // I DID NOT DESIGN OR WRITE THE FOLLOWING CODE
 // All credit goes to unknown GeeksForGeeks.org writer

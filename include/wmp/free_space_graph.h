@@ -11,8 +11,8 @@ public:
 	
 	float distanceTo(GraphNode);
 	bool addEdge(GraphNode, float);
-	float x;
-	float y;
+	int x;
+	int y;
 
 	float checkConnectivity(GraphNode);
 
@@ -33,3 +33,5 @@ private:
 	int num_of_nodes;
 	int occupancy_threshold;
 };
+
+bool doIntersect(GraphNode, GraphNode, GraphNode, GraphNode);
