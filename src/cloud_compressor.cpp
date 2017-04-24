@@ -100,7 +100,7 @@ bool CloudCompressor::compressToGrid()
 	ROS_INFO("Resolution (probs width based) is %f", obstacle_grid.info.resolution);
 
 	const float cell_size_x = grid_width/obstacle_grid.info.width;
-	const float cell_size_y = cell_size_x;
+	const float cell_size_y = cell_size_x; // This is a forcing thing, so it is square not rectangular. Not happy about it.
 
 	ROS_INFO("Cell size is thus %f by %f meters in size!", cell_size_x, cell_size_y);
 

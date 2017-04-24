@@ -12,6 +12,12 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 	int grid_width = occupancy_grid.info.width;
 	int grid_height = occupancy_grid.info.height;
 
+	x_offset = occupancy_grid.info.origin.position.x;
+	y_offset = occupancy_grid.info.origin.position.y;
+	grid_resolution = occupancy_grid.info.resolution;
+	
+	// occupancy_grid.info.origin.orientation.xyzw;
+
 	int grid_cell_x;
 	int grid_cell_y;
 
@@ -80,6 +86,8 @@ bool FreeSpaceGraph::connectNodes()
 				{
 
 				}
+
+				// MORE!
 			}
 		}
 	}
@@ -96,7 +104,7 @@ PointCloud FreeSpaceGraph::getNodesAsPointCloud()
 
 	for(int i = 0; i < nodeList.size(); i++)
 	{
-		graphPointCloud.push_back(Point(nodeList[i].x, nodeList[i].y, 0));
+		graphPointCloud.push_back(Point(nodeList[i].x*grid_resolution + x_offset, nodeList[i].y*grid_resolution + y_offset, 0));
 	}
 
 	return graphPointCloud;
@@ -121,15 +129,7 @@ float GraphNode::checkConnectivity(GraphNode distantNode)
 	else
 	{
 		// Check if there is an intersection between the line segment between these two nodes and any occupied cell on the grid
-
-		// For all line segments in rectangular sub-grid...?
-
-		/*
-		int smaller_x = min(x, distantNode.x);
-		int larger_x = max(x, distantNode.x);
-		int smaller_y = min(y, distantNode.y);
-		int larger_y = max(y, distantNode.y);
-		*/
+		// for all line segments in rectangular sub-grid.
 
 		float lower_bound_x;
 		float lower_bound_y;
@@ -138,13 +138,12 @@ float GraphNode::checkConnectivity(GraphNode distantNode)
 		float delta_i;
 		float delta_j;
 
-			// Second quadrant
-			lower_bound_x = (x - 0.5);
-			lower_bound_y = (y - 0.5);
-			upper_bound_x = (distantNode.x - 0.5);
-			upper_bound_y = (distantNode.y - 0.5);
-			delta_i = 1;
-			delta_j = 1;
+		lower_bound_x = (x - 0.5);
+		lower_bound_y = (y - 0.5);
+		upper_bound_x = (distantNode.x - 0.5);
+		upper_bound_y = (distantNode.y - 0.5);
+		delta_i = 1;
+		delta_j = 1;
 
 		if (distantNode.x > x && distantNode.y > y)
 		{
@@ -213,7 +212,7 @@ float GraphNode::checkConnectivity(GraphNode distantNode)
 	}
 }
 
-// CAREFUL!
+// CAREFUL NEED THIS!
 bool GraphNode::addEdge(GraphNode distantNode, float weight)
 {
 	return true;

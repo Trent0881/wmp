@@ -32,6 +32,11 @@ private:
 	std::vector<GraphNode> nodeList;
 	int num_of_nodes;
 	int occupancy_threshold;
+
+	float x_offset;
+	float y_offset;
+	float grid_resolution;
 };
 
+// Forward function declaration for a mathematical operation that we need
 bool doIntersect(GraphNode, GraphNode, GraphNode, GraphNode);
