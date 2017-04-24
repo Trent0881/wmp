@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 		ROS_WARN("FAILED to get file data!");
 	}
 
-	CloudCompressor cloudCompressor(200, 200);
+	CloudCompressor cloudCompressor(200, 200, -2.5, -2.5);
 	
 	if(!cloudCompressor.setCloud(g_filtered_cloud))
 	{
@@ -120,14 +120,17 @@ int main(int argc, char **argv)
 	}
 
 	ROS_INFO("Building planning graph object!");
-	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 10);
+	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 100);
 
-	ROS_INFO("Displaying planning graph list!");
-	for(int i = 0; i < planningGraph.getNodes().size(); i++)
+	PointCloud sample_points = planningGraph.getNodesAsPointCloud();
+	//ROS_INFO("Displaying planning graph list!");
+	for(int i = 0; i < sample_points.size(); i++)
 	{
-		ROS_INFO("(%d, %d)", planningGraph.getNodes()[i].x, planningGraph.getNodes()[i].y);
+		ROS_INFO("(%f, %f)", sample_points[i].x, sample_points[i].y);
+		
 	}
 
+	ROS_INFO("Connecting nodes on graph!");
 	planningGraph.connectNodes();
 
 
@@ -138,6 +141,8 @@ int main(int argc, char **argv)
 	ros::Publisher compressed_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("cpc", 1);
 	
 	ros::Publisher grid_pub = nh.advertise<nav_msgs::OccupancyGrid>("obstacle_grid", 1);
+
+	ros::Publisher sample_point_pub = nh.advertise<sensor_msgs::PointCloud2>("sample_points", 1);
 
    	int time_to_pub = 100;
 	ros::Rate count_rate(2); 
@@ -154,6 +159,9 @@ int main(int argc, char **argv)
 		compressed_cloud_pub.publish(cloudCompressor.getCloud());
 
 		grid_pub.publish(cloudCompressor.getGrid());
+
+		sample_points.header.frame_id = "lidar_link";
+		sample_point_pub.publish(sample_points);
 			
 		ros::spinOnce();
 		count_rate.sleep();

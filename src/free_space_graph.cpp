@@ -72,14 +72,13 @@ bool FreeSpaceGraph::connectNodes()
 				// For any two distinct nodes in our area with labels i and j...
 				distanceHeuristic = nodeList[i].checkConnectivity(nodeList[j]);
 				
-				if(distanceHeuristic == -1)
+				if(distanceHeuristic != -1)
 				{			
-					ROS_INFO("THIS MEANS THAT THESE TWO NODES HAVE AN OBSTACLE BETWEEN THEM");
-				}
-				if(distanceHeuristic < 0.5)
-				{
-					// ALSO NEED TO CHECK NON-INTERSECTION BEFORE ADDING EDGE AT ALL!!!!!!!
 					nodeList[i].addEdge(nodeList[j], distanceHeuristic);
+				}
+				else
+				{
+
 				}
 			}
 		}
@@ -91,7 +90,18 @@ std::vector<GraphNode> FreeSpaceGraph::getNodes()
 	return nodeList;
 }
 
-// Init
+PointCloud FreeSpaceGraph::getNodesAsPointCloud()
+{
+	PointCloud graphPointCloud;
+
+	for(int i = 0; i < nodeList.size(); i++)
+	{
+		graphPointCloud.push_back(Point(nodeList[i].x, nodeList[i].y, 0));
+	}
+
+	return graphPointCloud;
+}
+
 GraphNode::GraphNode(float x_pos, float y_pos)
 {
 	x = x_pos;
@@ -120,38 +130,41 @@ float GraphNode::checkConnectivity(GraphNode distantNode)
 		int smaller_y = min(y, distantNode.y);
 		int larger_y = max(y, distantNode.y);
 		*/
+
+		float lower_bound_x;
+		float lower_bound_y;
+		float upper_bound_x;
+		float upper_bound_y;
+		float delta_i;
+		float delta_j;
+
+			// Second quadrant
+			lower_bound_x = (x - 0.5);
+			lower_bound_y = (y - 0.5);
+			upper_bound_x = (distantNode.x - 0.5);
+			upper_bound_y = (distantNode.y - 0.5);
+			delta_i = 1;
+			delta_j = 1;
+
 		if (distantNode.x > x && distantNode.y > y)
 		{
 			// First quadrant
-
-			for(int i = (x - 0.5); i <= (distantNode.x - 0.5); i++)
-			{
-				for(int j = (y - 0.5); i <= (distantNode.y - 0.5); j++)
-				{
-					GraphNode P(i, j);
-					GraphNode Q(i + 1, j);
-					if(doIntersect(*this, distantNode, P, Q))
-					{
-						ROS_INFO("Path (%d, %d) -> (%d, %d) intersects line segment (%d, %d) -> (%d, %d)", 
-								x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
-						return -1;
-					}
-
-					P.x = i + 1;
-					P.y = j - 1;
-					
-					if(doIntersect(*this, distantNode, P, Q))
-					{
-						ROS_INFO("Path (%d, %d) -> (%d, %d) intersects line segment (%d, %d) -> (%d, %d)", 
-								x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
-						return -1;
-					}
-				}
-			}
+			lower_bound_x = (x - 0.5);
+			lower_bound_y = (y - 0.5);
+			upper_bound_x = (distantNode.x - 0.5);
+			upper_bound_y = (distantNode.y - 0.5);
+			delta_i = 1;
+			delta_j = 1;
 		}
 		else if(distantNode.x < x && distantNode.y > y)
 		{
 			// Second quadrant
+			lower_bound_x = (x - 0.5);
+			lower_bound_y = (y - 0.5);
+			upper_bound_x = (distantNode.x - 0.5);
+			upper_bound_y = (distantNode.y - 0.5);
+			delta_i = 1;
+			delta_j = 1;
 		}
 		else if(distantNode.x < x && distantNode.y < y)
 		{
@@ -166,7 +179,37 @@ float GraphNode::checkConnectivity(GraphNode distantNode)
 			ROS_INFO("JUST BTW '+' happened!");
 		}
 
+		for(float i = lower_bound_x; i <= upper_bound_x; i = i + delta_i)
+		{
+			for(float j = lower_bound_y; i <= upper_bound_y; j = j + delta_j)
+			{
+				GraphNode P(i, j);
+				GraphNode Q(i + 1, j);
+				if(doIntersect(*this, distantNode, P, Q))
+				{
+					ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
+							x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
 
+					ROS_INFO("THIS MEANS THAT THESE TWO NODES HAVE AN OBSTACLE BETWEEN THEM");
+					return -1;
+				}
+
+				P.x = i + 1;
+				P.y = j - 1;
+				
+				if(doIntersect(*this, distantNode, P, Q))
+				{
+					ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
+							x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
+
+					ROS_INFO("THIS MEANS THAT THESE TWO NODES HAVE AN OBSTACLE BETWEEN THEM");
+					return -1;
+				}
+			}
+		}
+
+		ROS_INFO("Path of distance %f found!", distance);
+		return distance;
 	}
 }
 

@@ -11,8 +11,8 @@ public:
 	
 	float distanceTo(GraphNode);
 	bool addEdge(GraphNode, float);
-	int x;
-	int y;
+	float x;
+	float y;
 
 	float checkConnectivity(GraphNode);
 
@@ -26,7 +26,7 @@ public:
 	FreeSpaceGraph(Grid, int);
 	bool connectNodes();
 	std::vector<GraphNode> getNodes();
-
+	PointCloud getNodesAsPointCloud();
 private:
 
 	std::vector<GraphNode> nodeList;

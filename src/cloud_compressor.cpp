@@ -1,21 +1,24 @@
 // Cloud Compressor object definitions for WMP
 // Created April 16 2017 by Trent Ziemer
-// Last updated April 23 2017 by Trent Ziemer
+// Last updated April 24 2017 by Trent Ziemer
 
 #include <wmp/cloud_compressor.h>
 
-CloudCompressor::CloudCompressor(float grid_size_1, float grid_size_2)
+CloudCompressor::CloudCompressor(float grid_size_1, float grid_size_2, float x, float y)
 {
 	obstacle_grid.header.frame_id = "lidar_link";
 
 	obstacle_grid.info.width = grid_size_1;
 	obstacle_grid.info.height = grid_size_2;
+
+	x_offset = x;
+	y_offset = y;
 }
 
 bool CloudCompressor::setCloud(PointCloud input_cloud)
 {
 	uncompressed_cloud = input_cloud;
-	// Parameterize below?
+	// Ideally parameterize things like the below frame IDs
 	uncompressed_cloud.header.frame_id = "lidar_link";
 	compressed_cloud.header.frame_id = "lidar_link";
 
@@ -30,8 +33,8 @@ bool CloudCompressor::setCloud(PointCloud input_cloud)
     examplePose.orientation = quat;
 
     geometry_msgs::Point pt;
-    pt.x = -2.5; 
-    pt.y = -2.5; 
+    pt.x = x_offset; 
+    pt.y = y_offset; 
     examplePose.position = pt;
 
 	obstacle_grid.info.origin = examplePose;
@@ -53,7 +56,6 @@ bool CloudCompressor::compressFlat()
 
 bool CloudCompressor::compressToGrid()
 {
-
 	grid_min_x = 0;
 	grid_min_y = 0;
 	grid_max_x = 0;
