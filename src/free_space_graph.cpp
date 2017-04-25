@@ -54,7 +54,7 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 		}
 		if (collision == false)
 		{
-			nodeList.push_back(GraphNode(grid_cell_x, grid_cell_y, node_master_id));
+			nodeList.push_back(GraphNode(grid_cell_x, grid_cell_y, x_offset, y_offset, grid_resolution, node_master_id));
 			node_master_id++;
 		}
 		else
@@ -86,6 +86,7 @@ PointCloud FreeSpaceGraph::getNodesAsPointCloud()
 bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 {
 	float distanceHeuristic;
+
 	for(int i = 0; i < nodeList.size(); i++)
 	{
 		for(int j = 0; j < nodeList.size(); j++)
@@ -100,22 +101,18 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 				{			
 					nodeList[i].addEdge(&nodeList[j], distanceHeuristic);
 				}
-				else
-				{
-
-				}
-
-				// MORE!
+				// MORE???!??!
 			}
 		}
 	}
+	ROS_INFO("DONE CONNECTING EDGES");
 }
 
-GraphNode::GraphNode(float x_pos, float y_pos, int id_number)
+GraphNode::GraphNode(float x_pos, float y_pos, float x_offset, float y_offset, float grid_resolution, int id_number)
 {
 	x = x_pos;
 	y = y_pos;
-	//xm = x_pos*
+	point = Point((x*grid_resolution + x_offset), (y*grid_resolution + y_offset), 0);
 	id = id_number;
 }
 
@@ -123,24 +120,27 @@ GraphNode::GraphNode(float x_pos, float y_pos)
 {
 	x = x_pos;
 	y = y_pos;
-	//xm = x_pos*
+
 }
 
 // Check distance to another node
 float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_distance)
 {
+	ROS_INFO("CHECKIN CONN");
 	float distance = sqrt(pow((distantNode.x - x),2) + pow((distantNode.y - y),2));
 	
 	if(distance > connectivity_distance)
 	{
+		ROS_INFO("TOO FAR");
 		// Preemptive failure, due to too far away. The integer "-1" is the error code for this case.
 		return -1;
+
 	}
 	else
 	{
 		// Check if there is an intersection between the line segment between these two nodes and any occupied cell on the grid
 		// for all line segments in rectangular sub-grid.
-
+		ROS_INFO("CHECKING COLLISIONS WITH MAP");
 		float lower_bound_x;
 		float lower_bound_y;
 		float upper_bound_x;
@@ -159,22 +159,27 @@ float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_dis
 		{
 			for(float j = lower_bound_y; i <= upper_bound_y; j = j + delta_j)
 			{
+
 				GraphNode P(i, j);
 				GraphNode Q(i + 1, j);
+				ROS_INFO("CHECKIN INTERSECT #1");
 				if(doIntersect(*this, distantNode, P, Q))
 				{
 					//ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
 					//		x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
+					ROS_INFO("FAILED #1");
 					return -1;
 				}
 
 				P.x = i + 1;
 				P.y = j - 1;
 				
+				ROS_INFO("CHECKIN INTERSECT #2");
 				if(doIntersect(*this, distantNode, P, Q))
 				{
 					//ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
 					//		x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
+					ROS_INFO("FAILED #2");
 					return -1;
 				}
 			}
@@ -182,7 +187,7 @@ float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_dis
 
 		//ROS_INFO("Path of distance %f found!", distance);
 		//ROS_INFO("THIS IS A PROBLEM");
-
+		ROS_INFO("RETURNING A DIST CAUSE GOOD");
 		return distance;
 	}
 }
@@ -191,7 +196,6 @@ float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_dis
 bool GraphNode::addEdge(GraphNode * distantNode, float weight)
 {
 	//ROS_INFO("Adding edge between (%f, %f) and (%f, %f): d = %f or %f.", x, y, distantNode->x, distantNode->y, sqrt(pow((distantNode->x - x),2) + pow((distantNode->y - y),2)), weight);
-
 	nearbyNodes.push_back(GraphEdge(distantNode, weight));
 	//distantNode->addEdge ???
 	return true;
