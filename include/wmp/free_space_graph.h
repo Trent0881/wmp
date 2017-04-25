@@ -35,7 +35,7 @@ public:
 	float y;
 	Point point;
 
-	float checkConnectivity(GraphNode, float);
+	float checkConnectivity(GraphNode, float, float);
 	std::vector<GraphEdge> nearbyNodes;
 
 	int id;
@@ -65,3 +65,5 @@ private:
 
 // Forward function declaration for a mathematical operation that we need
 bool doIntersect(GraphNode, GraphNode, GraphNode, GraphNode);
+
+bool isIntersecting(GraphNode, GraphNode, GraphNode, GraphNode);

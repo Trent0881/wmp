@@ -26,11 +26,16 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 	occupancy_threshold = 1; //  1 to 100
 	srand(time(NULL));
 	int node_master_id = 0;
+
 	for(int i = 0; i < num_of_nodes; i++)
 	{
+		/* RANDOM!
 		grid_cell_x = rand() % occupancy_grid.info.width;
 		grid_cell_y = rand() % occupancy_grid.info.height;
+		*/
 
+		grid_cell_x = i % occupancy_grid.info.width;
+		grid_cell_y = i; // EDIT THIS
 		for(int j = 0; j < occupancy_grid.data.size(); j++)
 		{
 			if(occupancy_grid.data[j] >= occupancy_threshold)
@@ -52,6 +57,7 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 				}
 			}
 		}
+
 		if (collision == false)
 		{
 			nodeList.push_back(GraphNode(grid_cell_x, grid_cell_y, x_offset, y_offset, grid_resolution, node_master_id));
@@ -95,17 +101,19 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 			{
 				//ROS_INFO("Conn dist = %f, grid res = %f, cd/gs = %f", connectivity_distance, grid_resolution, connectivity_distance/grid_resolution);
 				// For any two distinct nodes in our area with labels i and j...
-				distanceHeuristic = nodeList[i].checkConnectivity(nodeList[j], connectivity_distance/grid_resolution)*grid_resolution;
+				distanceHeuristic = nodeList[i].checkConnectivity(nodeList[j],  connectivity_distance, grid_resolution);
 				
-				if(distanceHeuristic != -1*grid_resolution)
+				if(distanceHeuristic != -1)
 				{			
 					nodeList[i].addEdge(&nodeList[j], distanceHeuristic);
+				}
+				else
+				{
 				}
 				// MORE???!??!
 			}
 		}
 	}
-	ROS_INFO("DONE CONNECTING EDGES");
 }
 
 GraphNode::GraphNode(float x_pos, float y_pos, float x_offset, float y_offset, float grid_resolution, int id_number)
@@ -124,23 +132,29 @@ GraphNode::GraphNode(float x_pos, float y_pos)
 }
 
 // Check distance to another node
-float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_distance)
+float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_distance, float resolution)
 {
-	ROS_INFO("CHECKIN CONN");
 	float distance = sqrt(pow((distantNode.x - x),2) + pow((distantNode.y - y),2));
 	
-	if(distance > connectivity_distance)
+	if(distance > connectivity_distance/resolution)
 	{
-		ROS_INFO("TOO FAR");
 		// Preemptive failure, due to too far away. The integer "-1" is the error code for this case.
 		return -1;
-
 	}
 	else
 	{
+		if(x < 0 || y < 0 || distantNode.x < 0 ||distantNode.y < 0)
+		{
+			ROS_WARN("NEGGGG!");
+			return -1;
+		}
+		if( (float)x > 200 ||  (float)y > 200 ||  (float)distantNode.x > 200 ||  (float)distantNode.y > 200)
+		{
+			ROS_WARN("TOOLARGE, PROBS. HARD CODED!");
+			return -1;
+		}
 		// Check if there is an intersection between the line segment between these two nodes and any occupied cell on the grid
 		// for all line segments in rectangular sub-grid.
-		ROS_INFO("CHECKING COLLISIONS WITH MAP");
 		float lower_bound_x;
 		float lower_bound_y;
 		float upper_bound_x;
@@ -155,40 +169,37 @@ float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_dis
 		delta_i = 1;
 		delta_j = 1;
 
+		//ROS_INFO("About to do %f" (upper_bound_x - lower_bound_x))
 		for(float i = lower_bound_x; i <= upper_bound_x; i = i + delta_i)
 		{
-			for(float j = lower_bound_y; i <= upper_bound_y; j = j + delta_j)
+			for(float j = lower_bound_y; j <= upper_bound_y; j = j + delta_j)
 			{
-
 				GraphNode P(i, j);
 				GraphNode Q(i + 1, j);
-				ROS_INFO("CHECKIN INTERSECT #1");
-				if(doIntersect(*this, distantNode, P, Q))
+				//ROS_INFO("CHECKIN INTERSECT #1");
+				if(isIntersecting(*this, distantNode, P, Q))
 				{
-					//ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
-					//		x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
-					ROS_INFO("FAILED #1");
+					ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
+							x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
 					return -1;
 				}
 
 				P.x = i + 1;
 				P.y = j - 1;
 				
-				ROS_INFO("CHECKIN INTERSECT #2");
-				if(doIntersect(*this, distantNode, P, Q))
+				//ROS_INFO("CHECKIN INTERSECT #2");
+				if(isIntersecting(*this, distantNode, P, Q))
 				{
-					//ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
-					//		x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
-					ROS_INFO("FAILED #2");
+					ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
+							x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
 					return -1;
 				}
 			}
 		}
 
 		//ROS_INFO("Path of distance %f found!", distance);
-		//ROS_INFO("THIS IS A PROBLEM");
-		ROS_INFO("RETURNING A DIST CAUSE GOOD");
-		return distance;
+		//ROS_INFO("THIS IS A PROBLEM?");
+		return distance*resolution;
 	}
 }
 
@@ -222,11 +233,11 @@ bool onSegment(GraphNode p, GraphNode q, GraphNode r)
 // 0 --> p, q and r are colinear
 // 1 --> Clockwise
 // 2 --> Counterclockwise
-int orientation(GraphNode p, GraphNode q, GraphNode r)
+float orientation(GraphNode p, GraphNode q, GraphNode r)
 {
     // See http://www.geeksforgeeks.org/orientation-3-ordered-points/
     // for details of below formula.
-    int val = (q.y - p.y) * (r.x - q.x) -
+    float val = (q.y - p.y) * (r.x - q.x) -
               (q.x - p.x) * (r.y - q.y);
  
     if (val == 0) return 0;  // colinear
@@ -240,10 +251,10 @@ bool doIntersect(GraphNode p1, GraphNode q1, GraphNode p2, GraphNode q2)
 {
     // Find the four orientations needed for general and
     // special cases
-    int o1 = orientation(p1, q1, p2);
-    int o2 = orientation(p1, q1, q2);
-    int o3 = orientation(p2, q2, p1);
-    int o4 = orientation(p2, q2, q1);
+    float o1 = orientation(p1, q1, p2);
+    float o2 = orientation(p1, q1, q2);
+    float o3 = orientation(p2, q2, p1);
+    float o4 = orientation(p2, q2, q1);
  
     // General case
     if (o1 != o2 && o3 != o4)
@@ -263,4 +274,12 @@ bool doIntersect(GraphNode p1, GraphNode q1, GraphNode p2, GraphNode q2)
     if (o4 == 0 && onSegment(p2, q1, q2)) return true;
  
     return false; // Doesn't fall in any of the above cases
+}
+
+bool isIntersecting(GraphNode p1, GraphNode p2, GraphNode q1, GraphNode q2) {
+    return (((q1.x-p1.x)*(p2.y-p1.y) - (q1.y-p1.y)*(p2.x-p1.x))
+            * ((q2.x-p1.x)*(p2.y-p1.y) - (q2.y-p1.y)*(p2.x-p1.x)) < 0)
+            &&
+           (((p1.x-q1.x)*(q2.y-q1.y) - (p1.y-q1.y)*(q2.x-q1.x))
+            * ((p2.x-q1.x)*(q2.y-q1.y) - (p2.y-q1.y)*(q2.x-q1.x)) < 0);
 }

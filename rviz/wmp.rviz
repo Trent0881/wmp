@@ -186,8 +186,8 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: Intensity
+      Color: 0; 132; 255
+      Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
@@ -200,7 +200,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.03
+      Size (m): 0.008
       Style: Spheres
       Topic: /wmp/graph_edges
       Unreliable: false
@@ -231,7 +231,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 7.58859
+      Distance: 6.12136
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -246,7 +246,7 @@ Visualization Manager:
       Pitch: 1.2948
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.10221
+      Yaw: 3.13721
     Saved: ~
 Window Geometry:
   Displays:

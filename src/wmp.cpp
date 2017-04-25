@@ -85,14 +85,14 @@ bool getDataFromFile(std::string filename)
 // Builds and returns a point cloud in a line from the first coordinate x,y to the second coordinate x,y. z = 0.
 PointCloud generateCloudLine(float x1, float y1, float x2, float y2)
 {
-	int number_of_points_per_line = 15;
+	int number_of_points_per_line = std::max((double)30, 30*sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)));
 	float delta_x = (x2 - x1)/number_of_points_per_line;
 	float delta_y = (y2 - y1)/number_of_points_per_line;
 	PointCloud line_cloud;
 	for(int i = 0; i < number_of_points_per_line; i++)
 	{
 		line_cloud.push_back(Point(x1 + delta_x*i, y1 + delta_y*i, 0));
-		ROS_INFO("Connecting # %d: (%f, %f) to (%f, %f): (%f, %f)", i, x1, y1, x2, y2, x1 + delta_x*i, y1 + delta_y*i);
+		//ROS_INFO("Connecting # %d: (%f, %f) to (%f, %f): (%f, %f)", i, x1, y1, x2, y2, x1 + delta_x*i, y1 + delta_y*i);
 	}
 	return line_cloud;
 }
@@ -135,15 +135,15 @@ int main(int argc, char **argv)
 	}
 
 	ROS_INFO("Building planning graph object");
-	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 500);
+	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 150);
 
 	PointCloud sample_points = planningGraph.getNodesAsPointCloud();
 
 	ROS_INFO("Connecting nodes on graph");
 
-	planningGraph.connectNodes(0.5);
+	planningGraph.connectNodes(0.4);
 
-	ROS_INFO("Printing node lists and connections");
+	ROS_INFO("Printing node lists and connections; creating graph edge clouds");
 
 	PointCloud graph_edge_clouds;
 	for(int i = 0; i < planningGraph.nodeList.size(); i++)
@@ -170,7 +170,7 @@ int main(int argc, char **argv)
 	
 	ros::Publisher grid_pub = nh.advertise<nav_msgs::OccupancyGrid>("obstacle_grid", 1);
 
-	ros::Publisher sample_point_pub = nh.advertise<sensor_msgs::PointCloud2>("sample_points", 1);
+	ros::Publisher sample_point_pub = nh.advertise<sensor_msgs::PointCloud2>("sp", 1);
 	ros::Publisher graph_edge_clouds_pub = nh.advertise<sensor_msgs::PointCloud2>("graph_edges", 1);
 
    	int time_to_pub = 100;
