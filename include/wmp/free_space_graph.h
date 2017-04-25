@@ -11,9 +11,9 @@ class GraphEdge
 public:
 
 	GraphEdge(GraphNode*, float);
-	
+		GraphNode * distantNode;
 private:
-	GraphNode * distantNode;
+
 	float weight;
 };
 
@@ -26,17 +26,20 @@ GraphEdge::GraphEdge(GraphNode * distantNodePtr, float distance_weight)
 class GraphNode
 {
 public:
+	GraphNode(float, float, int);
+	// Degen node, not in master list. Used for testing.
 	GraphNode(float, float);
-	
 	float distanceTo(GraphNode);
 	bool addEdge(GraphNode*, float);
 	float x;
 	float y;
 
 	float checkConnectivity(GraphNode, float);
-
-private:
 	std::vector<GraphEdge> nearbyNodes;
+
+	int id;
+private:
+
 };
 
 class FreeSpaceGraph
@@ -46,10 +49,10 @@ public:
 	bool connectNodes(float);
 	std::vector<GraphNode> getNodes();
 	PointCloud getNodesAsPointCloud();
-
+	std::vector<GraphNode> nodeList;
 private:
 
-	std::vector<GraphNode> nodeList;
+
 	int num_of_nodes;
 	int occupancy_threshold;
 

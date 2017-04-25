@@ -25,7 +25,7 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 
 	occupancy_threshold = 1; //  1 to 100
 	srand(time(NULL));
-	
+	int node_master_id = 0;
 	for(int i = 0; i < num_of_nodes; i++)
 	{
 		grid_cell_x = rand() % occupancy_grid.info.width;
@@ -54,7 +54,8 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 		}
 		if (collision == false)
 		{
-			nodeList.push_back(GraphNode(grid_cell_x, grid_cell_y));
+			nodeList.push_back(GraphNode(grid_cell_x, grid_cell_y, node_master_id));
+			node_master_id++;
 		}
 		else
 		{
@@ -108,6 +109,14 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 			}
 		}
 	}
+}
+
+GraphNode::GraphNode(float x_pos, float y_pos, int id_number)
+{
+	x = x_pos;
+	y = y_pos;
+	//xm = x_pos*
+	id = id_number;
 }
 
 GraphNode::GraphNode(float x_pos, float y_pos)
@@ -171,7 +180,9 @@ float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_dis
 			}
 		}
 
-		ROS_INFO("Path of distance %f found!", distance);
+		//ROS_INFO("Path of distance %f found!", distance);
+		//ROS_INFO("THIS IS A PROBLEM");
+
 		return distance;
 	}
 }

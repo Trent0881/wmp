@@ -82,6 +82,12 @@ bool getDataFromFile(std::string filename)
     }
 }
 
+PointCloud generateCloudLine(float x1, float y1, float x2, float y2)
+{
+	for()
+	return
+}
+
 ///////////////////////////        MAIN       ////////////////////////////
 int main(int argc, char **argv)
 {
@@ -120,15 +126,32 @@ int main(int argc, char **argv)
 	}
 
 	ROS_INFO("Building planning graph object");
-	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 200);
+	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 100);
 
 	PointCloud sample_points = planningGraph.getNodesAsPointCloud();
 
 	ROS_INFO("Connecting nodes on graph");
 
-	planningGraph.connectNodes(0.2);
+	planningGraph.connectNodes(0.5);
 
-	ROS_INFO("Done with processing and planning!");
+	for(int i = 0; i < planningGraph.nodeList.size(); i++)
+	{
+		ROS_INFO("Node %d at (%f, %f) is connected to:", i, planningGraph.nodeList[i].x, planningGraph.nodeList[i].y);
+		for(int j = 0; j < planningGraph.nodeList[i].nearbyNodes.size(); j++)
+		{
+			ROS_INFO("--- #%d node %d at (%f, %f)", j, planningGraph.nodeList[i].nearbyNodes[j].distantNode->id, planningGraph.nodeList[i].nearbyNodes[j].distantNode->x, planningGraph.nodeList[i].nearbyNodes[j].distantNode->y);
+			
+			edge_cloud = generateCloudLine(planningGraph.nodeList[i].x, planningGraph.nodeList[i].y, planningGraph.nodeList[i].nearbyNodes[j].distantNode->x, planningGraph.nodeList[i].nearbyNodes[j].distantNode->y)
+			
+			for(int k = 0; k < edge_cloud.size(); k++)
+			{
+				graph_edge_cloud.push_back(edge_cloud[k]);
+			}
+
+		}
+	}
+
+	ROS_INFO("Done with processing and ---planning---!");
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
 	ros::Publisher filtered_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("fpc", 1);
