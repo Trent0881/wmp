@@ -119,22 +119,16 @@ int main(int argc, char **argv)
 		ROS_WARN("FAILED to compress map cloud to grid!");
 	}
 
-	ROS_INFO("Building planning graph object!");
-	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 100);
+	ROS_INFO("Building planning graph object");
+	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 200);
 
 	PointCloud sample_points = planningGraph.getNodesAsPointCloud();
-	//ROS_INFO("Displaying planning graph list!");
-	for(int i = 0; i < sample_points.size(); i++)
-	{
-		ROS_INFO("(%f, %f)", sample_points[i].x, sample_points[i].y);
-		
-	}
 
-	ROS_INFO("Connecting nodes on graph!");
-	planningGraph.connectNodes();
+	ROS_INFO("Connecting nodes on graph");
 
+	planningGraph.connectNodes(0.2);
 
-	ROS_INFO("Done...(?)");
+	ROS_INFO("Done with processing and planning!");
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
 	ros::Publisher filtered_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("fpc", 1);

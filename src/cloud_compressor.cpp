@@ -144,6 +144,7 @@ bool CloudCompressor::compressToGrid()
 				 && compressed_cloud.points[k].y <= cell_max_y)
 				{
 					points_in_cell++;
+					// Either or works, mate 
 					//points_in_cell = 100;
 				}
 			}

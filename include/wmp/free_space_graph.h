@@ -4,29 +4,49 @@
 
 #include <wmp/common.h>
 
+class GraphNode;
+
+class GraphEdge
+{
+public:
+
+	GraphEdge(GraphNode*, float);
+	
+private:
+	GraphNode * distantNode;
+	float weight;
+};
+
+GraphEdge::GraphEdge(GraphNode * distantNodePtr, float distance_weight)
+{
+	distantNode = distantNodePtr;
+	weight = distance_weight;
+}
+
 class GraphNode
 {
 public:
 	GraphNode(float, float);
 	
 	float distanceTo(GraphNode);
-	bool addEdge(GraphNode, float);
+	bool addEdge(GraphNode*, float);
 	float x;
 	float y;
 
-	float checkConnectivity(GraphNode);
+	float checkConnectivity(GraphNode, float);
 
 private:
-
+	std::vector<GraphEdge> nearbyNodes;
 };
 
 class FreeSpaceGraph
 {
 public:
 	FreeSpaceGraph(Grid, int);
-	bool connectNodes();
+	bool connectNodes(float);
 	std::vector<GraphNode> getNodes();
 	PointCloud getNodesAsPointCloud();
+
 private:
 
 	std::vector<GraphNode> nodeList;
