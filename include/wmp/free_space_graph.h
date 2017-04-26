@@ -34,7 +34,7 @@ GraphEdge::GraphEdge(GraphNode * distantNodePtr, float distance_weight)
 class GraphNode
 {
 public:
-	GraphNode(float, float, float, float, float, int);
+	GraphNode(int, int, float, float, int);
 	// Degen node, not in master list. Used for testing.
 	GraphNode(float, float);
 	float distanceTo(GraphNode);
@@ -43,7 +43,7 @@ public:
 	float y;
 	Point point;
 
-	float checkConnectivity(GraphNode, float, Grid*);
+	float checkConnectivity(GraphNode, GoodGrid*, float, int);
 	std::vector<GraphEdge> nearbyNodes;
 
 	int id;

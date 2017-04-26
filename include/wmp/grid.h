@@ -1,4 +1,4 @@
-// An actually Good Grid (GoodGrid) object for WMP
+// An actually Good Grid (GoodGrid) object header for WMP
 // Created April 16 2017 by Trent Ziemer
 // Last updated April 26 2017 by Trent Ziemer
 
@@ -11,7 +11,7 @@ public:
 	GoodGrid(Grid);
 
 
-	std::vector< std::vector<int> > data;
+	std::vector< std::vector< int > > data;
 
 	float width;
 	float height;

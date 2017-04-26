@@ -5,7 +5,6 @@
 #include <wmp/common.h>
 #include <wmp/point_filter.h>
 #include <wmp/cloud_compressor.h>
-#include <wmp/grid.h>
 #include <wmp/free_space_graph.h>
 
 // File IO for C++
@@ -135,13 +134,15 @@ int main(int argc, char **argv)
 	}
 
 	ROS_INFO("Building planning graph object");
-	FreeSpaceGraph planningGraph(&GoodGrid(cloudCompressor.getGrid()), 20, 20);
+	GoodGrid grid = GoodGrid(cloudCompressor.getGrid());
 
+	FreeSpaceGraph planningGraph(&grid, 20, 20);
+	
 	PointCloud sample_points = planningGraph.getNodesAsPointCloud();
 
 	ROS_INFO("Connecting nodes on graph");
 
-	planningGraph.connectNodes(0.5);
+	planningGraph.connectNodes(2);
 
 	ROS_INFO("Creating graph edge clouds");
 
@@ -161,7 +162,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-
+/*
 
 	// Linear collisions
 	PointCloud bad_graph_edge_clouds;
@@ -180,7 +181,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-
+*/
 	ROS_INFO("Done with processing and ---planning---!");
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
@@ -215,8 +216,8 @@ int main(int argc, char **argv)
 		graph_edge_clouds.header.frame_id = "rot";
 		graph_edge_clouds_pub.publish(graph_edge_clouds);
 		
-		bad_graph_edge_clouds.header.frame_id = "rot";
-		bad_graph_edge_clouds_pub.publish(bad_graph_edge_clouds);
+		//bad_graph_edge_clouds.header.frame_id = "rot";
+		//bad_graph_edge_clouds_pub.publish(bad_graph_edge_clouds);
 
 		ros::spinOnce();
 		count_rate.sleep();

@@ -1,96 +1,62 @@
 // Free Space Graph object definitions
 // Created April 23 2017 by Trent Ziemer
-// Last updated XXX by Trent Ziemer
+// Last updated April 26 2017 by Trent Ziemer
 
 #include <wmp/free_space_graph.h>
+#include <math.h>
 
-FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int horizontal_cell_count, int vertical_cell_count)
+FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per_column)
 {
 	int grid_index_x;
 	int grid_index_y;
 	occupancy_threshold = 1; // 1 to 100
-
+	float position_x;
+	float position_y;
 	bool random = false;
 	int node_master_id = 0;
 	srand(time(NULL));
+	gridPtr = grid;
 
 	if(random == true)
 	{
-		grid_index_x = rand() % grid->horizontal_cell_count;
-		grid_index_y = rand() % grid->vertical_cell_count;
-		for(int i = 0; i < horizontal_cell_count*vertical_cell_count; i++)
+		for(int i = 0; i < grid->horizontal_cell_count * grid->vertical_cell_count; i++)
 		{
+			grid_index_x = rand() % grid->horizontal_cell_count;
+			grid_index_y = rand() % grid->vertical_cell_count;
 			if(grid->data[grid_index_x][grid_index_y] > occupancy_threshold)
 			{
-				x_position = 
-				nodeList.push_back(GraphNode(grid_index_x, grid_index_y, x_position, y_position, node_master_id));
+				// position_x = ?
+				nodeList.push_back(GraphNode(grid_index_x, grid_index_y, position_x, position_y, node_master_id));
 				node_master_id++;
 			}	
 		}
 	}
 	else
 	{
-		for(int i = 0; i < horizontal_cell_count; i++)
+		for(int i = 0; i < cells_per_row; i++)
 		{
-			grid_index_x = static_cast<int>std::round(i / grid->horizontal_resolution);
-			for(int j = 0; j < vertical_cell_count; j++)
+			grid_index_x = static_cast<int>(round(i * grid->horizontal_cell_count / cells_per_row)); /// grid->horizontal_resolution);
+			for(int j = 0; j < cells_per_column; j++)
 			{
-				grid_index_y = static_cast<int>std::round(j / grid->vertical_resolution);
-				if(grid->data[grid_index_x][grid_index_y] > occupancy_threshold)
+				grid_index_y = static_cast<int>(round(j * grid->vertical_cell_count / cells_per_column));
+
+				if(grid->data[grid_index_x][grid_index_y] < occupancy_threshold)
 				{
-					x_position = 
-					nodeList.push_back(GraphNode(grid_index_x, grid_index_y, x_position, y_position, node_master_id));
+					position_x = (i * grid->width)/ ((float)grid->horizontal_cell_count) - (grid->width/2);
+					position_y = (j * grid->height)/ ((float)grid->vertical_cell_count) - (grid->height/2);
+					ROS_INFO("Adding node @ [%d, %d] pos = (%f, %f).", i, j, position_x, position_y);
+					ROS_INFO("with i = %d, j = %d, hcc = %d, vcc = %d, ", i , j, grid->horizontal_cell_count, grid->vertical_cell_count);
+					ROS_INFO("and cpr = %d, cpc = %d, gix = %d, giy = %d   ", cells_per_row, cells_per_column, grid_index_x, grid_index_y);
+					ROS_INFO(" ");
+					nodeList.push_back(GraphNode(i, j, position_x, position_y, node_master_id));
+					
 					node_master_id++;
 				}
-			}
-		}
-	}
-
-	grid_cell_y = 0;
-	for(int i = 0; i < num_of_nodes; i++)
-	{
-		/* RANDOM!*/
-
-		
-		grid_index_y = rand() % grid->vertical_cell_count;
-		
-		/* UNIFORM! 
-		grid_cell_x = (4*i) % occupancy_grid.info.width;
-		if(grid_cell_x == 0)
-			grid_cell_y = grid_cell_y + 4;
-
-		//ROS_INFO("(%d and %d)", grid_cell_x, grid_cell_y);
-		*/
-		for(int j = 0; j < occupancy_grid.data.size(); j++)
-		{
-			if(occupancy_grid.data[j] >= occupancy_threshold)
-			{
-				grid_index_y = 0;
-				int index = j;
-				while(index >= grid->horizontal_cells)
+				else
 				{
-					index = index - grid->horizontal_cells;
-					grid_index_y++;
-				}
-				grid_index_x = index;
-
-				if((grid_cell_x == grid_index_x) && (grid_cell_y == grid_index_y))
-				{
-					collision = true;
-					//ROS_INFO("Point-sampling obstacle-collision found: x = %d, y = %d", grid_index_x, grid_index_y);
-					//ROS_INFO("...given points %d and %d!", grid_cell_x, grid_cell_y);
+					ROS_INFO("Cant add node @ [%d, %d] pos = (%f, %f) due to obstacle collision", i, j, position_x, position_y);
 				}
 			}
-		}
-
-		if (collision == false)
-		{
-			nodeList.push_back(GraphNode(grid_cell_x, grid_cell_y, x_offset, y_offset, grid_resolution, node_master_id));
-			node_master_id++;
-		}
-		else
-		{
-			collision = false;
 		}
 	}
 }
@@ -126,7 +92,7 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 			{
 				//ROS_INFO("Conn dist = %f, grid res = %f, cd/gs = %f", connectivity_distance, grid_resolution, connectivity_distance/grid_resolution);
 				// For any two distinct nodes in our area with labels i and j...
-				distanceHeuristic = nodeList[i].checkConnectivity(nodeList[j],  connectivity_distance, gridPtr);
+				distanceHeuristic = nodeList[i].checkConnectivity(nodeList[j], gridPtr, connectivity_distance, occupancy_threshold);
 				
 				if(distanceHeuristic != -1)
 				{			
@@ -141,11 +107,11 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 	}
 }
 
-GraphNode::GraphNode(float x_pos, float y_pos, float x_offset, float y_offset, float grid_resolution, int id_number)
+GraphNode::GraphNode(int i, int j, float x_pos, float y_pos, int id_number)
 {
-	x = x_pos;
-	y = y_pos;
-	point = Point((x*grid_resolution + x_offset), (y*grid_resolution + y_offset), 0);
+	x = i;
+	y = j;
+	point = Point(x_pos, y_pos, 0);
 	id = id_number;
 }
 
@@ -157,11 +123,11 @@ GraphNode::GraphNode(float x_pos, float y_pos)
 }
 
 // Check distance to another node
-float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_distance, Grid * gridPtr)
+float GraphNode::checkConnectivity(GraphNode distantNode, GoodGrid * gridPtr, float connectivity_distance, int connectivity_threshold)
 {
-	float distance = sqrt(pow((distantNode.x - x),2) + pow((distantNode.y - y),2));
-	
-	if(distance > connectivity_distance/gridPtr->info.resolution)
+	float distance = sqrt(pow((distantNode.point.x - point.x),2) + pow((distantNode.point.y - point.y),2));
+	//ROS_INFO(%f, )
+	if(distance > connectivity_distance)
 	{
 		// Preemptive failure, due to too far away. The integer "-1" is the error code for this case.
 		return -1;
@@ -178,26 +144,27 @@ float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_dis
 			ROS_WARN("TOOLARGE, PROBS. HARD CODED!");
 			return -1;
 		}
-		
-		// HERE1
 
-		PointCloud lineCloud = generateCloudLine(x, y, distantNode.x, distantNode.y);
+		int a;
+		int b;
+
+		PointCloud lineCloud = generateCloudLine((float)x, (float)y, (float)distantNode.x, (float)distantNode.y);
 		for(int i = 0; i < lineCloud.size(); i++)
 		{
-			int a = lineCloud[i].x;
-			int b = lineCloud[i].y;
-			if(gridPtr->data[ a * gridPtr->info.width + b] > 1) //  CHANGE TO OCC THR VAR (FROM ELSEWHERE)
+			a = static_cast<int>(round(lineCloud[i].x));
+			b = static_cast<int>(round(lineCloud[i].y));
+			//ROS_INFO("Line cloud pt (%f, %f); accessing (%d, %d)", lineCloud[i].x, lineCloud[i].y, a ,b);
+			if(gridPtr->data[a][b] > connectivity_threshold)
 			{
 				ROS_INFO("Obstacle at (%d %d)", a, b);
-				g_bad_nodes.push_back(Point(x*gridPtr->info.resolution - 2.5, y*gridPtr->info.resolution - 2.5, 0));
-				g_bad_nodes_two.push_back(Point(distantNode.x*gridPtr->info.resolution - 2.5, distantNode.y*gridPtr->info.resolution - 2.5, 0));
+				//g_bad_nodes.push_back(Point(x*gridPtr->info.resolution - 2.5, y*gridPtr->info.resolution - 2.5, 0));
+				//g_bad_nodes_two.push_back(Point(distantNode.x*gridPtr->info.resolution - 2.5, distantNode.y*gridPtr->info.resolution - 2.5, 0));
 				return -1;
 			}
 		}
 
-		// HERE2
 		//ROS_INFO("Path of distance %f found!", distance);
-		return distance*gridPtr->info.resolution;
+		return distance;
 	}
 }
 
