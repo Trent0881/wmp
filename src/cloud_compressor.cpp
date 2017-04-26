@@ -1,6 +1,6 @@
 // Cloud Compressor object definitions for WMP
 // Created April 16 2017 by Trent Ziemer
-// Last updated April 24 2017 by Trent Ziemer
+// Last updated April 26 2017 by Trent Ziemer
 
 #include <wmp/cloud_compressor.h>
 

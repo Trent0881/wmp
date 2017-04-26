@@ -85,7 +85,7 @@ bool getDataFromFile(std::string filename)
 // Builds and returns a point cloud in a line from the first coordinate x,y to the second coordinate x,y. z = 0.
 PointCloud generateCloudLine(float x1, float y1, float x2, float y2)
 {
-	int number_of_points_per_line = std::max((double)30, 30*sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)));
+	int number_of_points_per_line = 50; //std::max((double)50, 100*sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)));
 	float delta_x = (x2 - x1)/number_of_points_per_line;
 	float delta_y = (y2 - y1)/number_of_points_per_line;
 	PointCloud line_cloud;
@@ -135,20 +135,20 @@ int main(int argc, char **argv)
 	}
 
 	ROS_INFO("Building planning graph object");
-	FreeSpaceGraph planningGraph(cloudCompressor.getGrid(), 150);
+	FreeSpaceGraph planningGraph(GoodGrid(cloudCompressor.getGrid()), 500); // 40000/16);
 
 	PointCloud sample_points = planningGraph.getNodesAsPointCloud();
 
 	ROS_INFO("Connecting nodes on graph");
 
-	planningGraph.connectNodes(0.4);
+	planningGraph.connectNodes(0.5);
 
-	ROS_INFO("Printing node lists and connections; creating graph edge clouds");
+	ROS_INFO("Creating graph edge clouds");
 
 	PointCloud graph_edge_clouds;
 	for(int i = 0; i < planningGraph.nodeList.size(); i++)
 	{
-		//ROS_INFO("Node %d at (%f, %f) is connected to:", i, planningGraph.nodeList[i].point.x, planningGraph.nodeList[i].point.y);
+		//ROS_INFO("Node %d [%f, %f] at (%f, %f) is connected to:", i, planningGraph.nodeList[i].x, planningGraph.nodeList[i].y, planningGraph.nodeList[i].point.x, planningGraph.nodeList[i].point.y);
 		for(int j = 0; j < planningGraph.nodeList[i].nearbyNodes.size(); j++)
 		{
 			//ROS_INFO("--- #%d node %d at (%f, %f)", j, planningGraph.nodeList[i].nearbyNodes[j].distantNode->id, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.x, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.y);
@@ -158,6 +158,25 @@ int main(int argc, char **argv)
 			for(int k = 0; k < edge_cloud.size(); k++)
 			{
 				graph_edge_clouds.push_back(edge_cloud[k]);
+			}
+		}
+	}
+
+
+	// Linear collisions
+	PointCloud bad_graph_edge_clouds;
+	for(int i = 0; i < planningGraph.nodeList.size(); i++)
+	{
+		//ROS_INFO("Node %d at (%f, %f) is connected to:", i, planningGraph.nodeList[i].point.x, planningGraph.nodeList[i].point.y);
+		for(int j = 0; j < planningGraph.nodeList[i].nearbyNodes.size(); j++)
+		{
+			//ROS_INFO("--- #%d node %d at (%f, %f)", j, planningGraph.nodeList[i].nearbyNodes[j].distantNode->id, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.x, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.y);
+			
+			PointCloud bad_edge_cloud = generateCloudLine(g_bad_nodes[i].x, g_bad_nodes[i].y, g_bad_nodes_two[i].x, g_bad_nodes_two[i].y);
+			
+			for(int k = 0; k < bad_edge_cloud.size(); k++)
+			{
+				bad_graph_edge_clouds.push_back(bad_edge_cloud[k]);
 			}
 		}
 	}
@@ -172,7 +191,8 @@ int main(int argc, char **argv)
 
 	ros::Publisher sample_point_pub = nh.advertise<sensor_msgs::PointCloud2>("sp", 1);
 	ros::Publisher graph_edge_clouds_pub = nh.advertise<sensor_msgs::PointCloud2>("graph_edges", 1);
-
+	ros::Publisher bad_graph_edge_clouds_pub = nh.advertise<sensor_msgs::PointCloud2>("bad_graph_edges", 1);
+   	
    	int time_to_pub = 100;
 	ros::Rate count_rate(2); 
 	int count = 0;
@@ -192,8 +212,11 @@ int main(int argc, char **argv)
 		sample_points.header.frame_id = "lidar_link";
 		sample_point_pub.publish(sample_points);
 			
-		graph_edge_clouds.header.frame_id = "lidar_link";
+		graph_edge_clouds.header.frame_id = "rot";
 		graph_edge_clouds_pub.publish(graph_edge_clouds);
+		
+		bad_graph_edge_clouds.header.frame_id = "rot";
+		bad_graph_edge_clouds_pub.publish(bad_graph_edge_clouds);
 
 		ros::spinOnce();
 		count_rate.sleep();

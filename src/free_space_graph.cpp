@@ -13,7 +13,11 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 	y_offset = occupancy_grid.info.origin.position.y;
 	grid_resolution = occupancy_grid.info.resolution;
 
+
+	
 	// occupancy_grid.info.origin.orientation.xyzw;
+
+	gridPtr = &occupancy_grid;
 
 	int grid_cell_x;
 	int grid_cell_y;
@@ -27,15 +31,21 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 	srand(time(NULL));
 	int node_master_id = 0;
 
+	grid_cell_y = 0;
 	for(int i = 0; i < num_of_nodes; i++)
 	{
-		/* RANDOM!
+		/* RANDOM!*/
+
 		grid_cell_x = rand() % occupancy_grid.info.width;
 		grid_cell_y = rand() % occupancy_grid.info.height;
-		*/
+		
+		/* UNIFORM! 
+		grid_cell_x = (4*i) % occupancy_grid.info.width;
+		if(grid_cell_x == 0)
+			grid_cell_y = grid_cell_y + 4;
 
-		grid_cell_x = i % occupancy_grid.info.width;
-		grid_cell_y = i; // EDIT THIS
+		//ROS_INFO("(%d and %d)", grid_cell_x, grid_cell_y);
+		*/
 		for(int j = 0; j < occupancy_grid.data.size(); j++)
 		{
 			if(occupancy_grid.data[j] >= occupancy_threshold)
@@ -101,7 +111,7 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 			{
 				//ROS_INFO("Conn dist = %f, grid res = %f, cd/gs = %f", connectivity_distance, grid_resolution, connectivity_distance/grid_resolution);
 				// For any two distinct nodes in our area with labels i and j...
-				distanceHeuristic = nodeList[i].checkConnectivity(nodeList[j],  connectivity_distance, grid_resolution);
+				distanceHeuristic = nodeList[i].checkConnectivity(nodeList[j],  connectivity_distance, gridPtr);
 				
 				if(distanceHeuristic != -1)
 				{			
@@ -132,11 +142,11 @@ GraphNode::GraphNode(float x_pos, float y_pos)
 }
 
 // Check distance to another node
-float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_distance, float resolution)
+float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_distance, Grid * gridPtr)
 {
 	float distance = sqrt(pow((distantNode.x - x),2) + pow((distantNode.y - y),2));
 	
-	if(distance > connectivity_distance/resolution)
+	if(distance > connectivity_distance/gridPtr->info.resolution)
 	{
 		// Preemptive failure, due to too far away. The integer "-1" is the error code for this case.
 		return -1;
@@ -153,53 +163,26 @@ float GraphNode::checkConnectivity(GraphNode distantNode, float connectivity_dis
 			ROS_WARN("TOOLARGE, PROBS. HARD CODED!");
 			return -1;
 		}
-		// Check if there is an intersection between the line segment between these two nodes and any occupied cell on the grid
-		// for all line segments in rectangular sub-grid.
-		float lower_bound_x;
-		float lower_bound_y;
-		float upper_bound_x;
-		float upper_bound_y;
-		float delta_i;
-		float delta_j;
-		// TBD
-		lower_bound_x = (x - 0.5);
-		lower_bound_y = (y - 0.5);
-		upper_bound_x = (distantNode.x - 0.5);
-		upper_bound_y = (distantNode.y - 0.5);
-		delta_i = 1;
-		delta_j = 1;
+		
+		// HERE1
 
-		//ROS_INFO("About to do %f" (upper_bound_x - lower_bound_x))
-		for(float i = lower_bound_x; i <= upper_bound_x; i = i + delta_i)
+		PointCloud lineCloud = generateCloudLine(x, y, distantNode.x, distantNode.y);
+		for(int i = 0; i < lineCloud.size(); i++)
 		{
-			for(float j = lower_bound_y; j <= upper_bound_y; j = j + delta_j)
+			int a = lineCloud[i].x;
+			int b = lineCloud[i].y;
+			if(gridPtr->data[ a * gridPtr->info.width + b] > 1) //  CHANGE TO OCC THR VAR (FROM ELSEWHERE)
 			{
-				GraphNode P(i, j);
-				GraphNode Q(i + 1, j);
-				//ROS_INFO("CHECKIN INTERSECT #1");
-				if(isIntersecting(*this, distantNode, P, Q))
-				{
-					ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
-							x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
-					return -1;
-				}
-
-				P.x = i + 1;
-				P.y = j - 1;
-				
-				//ROS_INFO("CHECKIN INTERSECT #2");
-				if(isIntersecting(*this, distantNode, P, Q))
-				{
-					ROS_INFO("Path (%f, %f) -> (%f, %f) intersects line segment (%f, %f) -> (%f, %f)", 
-							x, y, distantNode.x, distantNode.y, P.x, P.y, Q.x, Q.y);
-					return -1;
-				}
+				ROS_INFO("Obstacle at (%d %d)", a, b);
+				g_bad_nodes.push_back(Point(x*gridPtr->info.resolution - 2.5, y*gridPtr->info.resolution - 2.5, 0));
+				g_bad_nodes_two.push_back(Point(distantNode.x*gridPtr->info.resolution - 2.5, distantNode.y*gridPtr->info.resolution - 2.5, 0));
+				return -1;
 			}
 		}
 
+		// HERE2
 		//ROS_INFO("Path of distance %f found!", distance);
-		//ROS_INFO("THIS IS A PROBLEM?");
-		return distance*resolution;
+		return distance*gridPtr->info.resolution;
 	}
 }
 

@@ -4,6 +4,12 @@
 
 #include <wmp/common.h>
 
+// Such bad style
+PointCloud generateCloudLine(float x1, float y1, float x2, float y2);
+
+PointCloud g_bad_nodes;
+PointCloud g_bad_nodes_two;
+
 class GraphNode;
 
 class GraphEdge
@@ -35,7 +41,7 @@ public:
 	float y;
 	Point point;
 
-	float checkConnectivity(GraphNode, float, float);
+	float checkConnectivity(GraphNode, float, Grid*);
 	std::vector<GraphEdge> nearbyNodes;
 
 	int id;
@@ -54,7 +60,7 @@ public:
 	std::vector<GraphNode> nodeList;
 private:
 
-
+	Grid * gridPtr;
 	int num_of_nodes;
 	int occupancy_threshold;
 
