@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 	}
 
 	ROS_INFO("Building planning graph object");
-	FreeSpaceGraph planningGraph(GoodGrid(cloudCompressor.getGrid()), 500); // 40000/16);
+	FreeSpaceGraph planningGraph(&GoodGrid(cloudCompressor.getGrid()), 20, 20);
 
 	PointCloud sample_points = planningGraph.getNodesAsPointCloud();
 

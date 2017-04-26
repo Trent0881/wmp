@@ -11,13 +11,13 @@ public:
 	GoodGrid(Grid);
 
 
-	std::vector< std::vector<int> > grid;
+	std::vector< std::vector<int> > data;
 
-	int width;
-	int height;
+	float width;
+	float height;
 
-	int horizontal_points;
-	int vertical_points;
+	int horizontal_cell_count;
+	int vertical_cell_count;
 
 	float horizontal_resolution;
 	float vertical_resolution;

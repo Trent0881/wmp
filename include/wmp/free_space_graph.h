@@ -3,10 +3,12 @@
 // Last updated April 24 2017 by Trent Ziemer
 
 #include <wmp/common.h>
+#include <wmp/grid.h>
 
 // Such bad style
 PointCloud generateCloudLine(float x1, float y1, float x2, float y2);
 
+// Globals for checking/testing
 PointCloud g_bad_nodes;
 PointCloud g_bad_nodes_two;
 
@@ -53,14 +55,15 @@ private:
 class FreeSpaceGraph
 {
 public:
-	FreeSpaceGraph(Grid, int);
+	FreeSpaceGraph(GoodGrid *, int);
+	FreeSpaceGraph(GoodGrid *, int, int);
 	bool connectNodes(float);
 	std::vector<GraphNode> getNodes();
 	PointCloud getNodesAsPointCloud();
 	std::vector<GraphNode> nodeList;
 private:
 
-	Grid * gridPtr;
+	GoodGrid * gridPtr;
 	int num_of_nodes;
 	int occupancy_threshold;
 

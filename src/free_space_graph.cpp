@@ -4,40 +4,55 @@
 
 #include <wmp/free_space_graph.h>
 
-FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
+FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int horizontal_cell_count, int vertical_cell_count)
 {
-	int grid_width = occupancy_grid.info.width;
-	int grid_height = occupancy_grid.info.height;
-
-	x_offset = occupancy_grid.info.origin.position.x;
-	y_offset = occupancy_grid.info.origin.position.y;
-	grid_resolution = occupancy_grid.info.resolution;
-
-
-	
-	// occupancy_grid.info.origin.orientation.xyzw;
-
-	gridPtr = &occupancy_grid;
-
-	int grid_cell_x;
-	int grid_cell_y;
-
 	int grid_index_x;
 	int grid_index_y;
+	occupancy_threshold = 1; // 1 to 100
 
-	bool collision = false;
-
-	occupancy_threshold = 1; //  1 to 100
-	srand(time(NULL));
+	bool random = false;
 	int node_master_id = 0;
+	srand(time(NULL));
+
+	if(random == true)
+	{
+		grid_index_x = rand() % grid->horizontal_cell_count;
+		grid_index_y = rand() % grid->vertical_cell_count;
+		for(int i = 0; i < horizontal_cell_count*vertical_cell_count; i++)
+		{
+			if(grid->data[grid_index_x][grid_index_y] > occupancy_threshold)
+			{
+				x_position = 
+				nodeList.push_back(GraphNode(grid_index_x, grid_index_y, x_position, y_position, node_master_id));
+				node_master_id++;
+			}	
+		}
+	}
+	else
+	{
+		for(int i = 0; i < horizontal_cell_count; i++)
+		{
+			grid_index_x = static_cast<int>std::round(i / grid->horizontal_resolution);
+			for(int j = 0; j < vertical_cell_count; j++)
+			{
+				grid_index_y = static_cast<int>std::round(j / grid->vertical_resolution);
+				if(grid->data[grid_index_x][grid_index_y] > occupancy_threshold)
+				{
+					x_position = 
+					nodeList.push_back(GraphNode(grid_index_x, grid_index_y, x_position, y_position, node_master_id));
+					node_master_id++;
+				}
+			}
+		}
+	}
 
 	grid_cell_y = 0;
 	for(int i = 0; i < num_of_nodes; i++)
 	{
 		/* RANDOM!*/
 
-		grid_cell_x = rand() % occupancy_grid.info.width;
-		grid_cell_y = rand() % occupancy_grid.info.height;
+		
+		grid_index_y = rand() % grid->vertical_cell_count;
 		
 		/* UNIFORM! 
 		grid_cell_x = (4*i) % occupancy_grid.info.width;
@@ -52,9 +67,9 @@ FreeSpaceGraph::FreeSpaceGraph(Grid occupancy_grid, int num_of_nodes)
 			{
 				grid_index_y = 0;
 				int index = j;
-				while(index >= grid_width)
+				while(index >= grid->horizontal_cells)
 				{
-					index = index - grid_width;
+					index = index - grid->horizontal_cells;
 					grid_index_y++;
 				}
 				grid_index_x = index;
