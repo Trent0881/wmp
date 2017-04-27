@@ -6,8 +6,7 @@
 #include <wmp/common.h>
 #include <wmp/point_filter.h>
 #include <wmp/cloud_compressor.h>
-#include <wmp/free_space_graph.h> // (which includes grid.h/grid.cpp)
-#include <wmp/path_searcher.h>
+#include <wmp/path_searcher.h> //(which includes grid and free_space_graph)
 
 // File IO for C++
 #include <iostream>
@@ -144,8 +143,11 @@ int main(int argc, char **argv)
 	PointCloud sample_points = planningGraph.getPointCloud();
 
 	ROS_INFO("Connecting nodes on graph");
+	float connection_radius = (float)10/cells_per_side;
+	planningGraph.connectNodes(connection_radius);
 
-	planningGraph.connectNodes((float)10/cells_per_side);
+	ROS_INFO("Building node-based pathway planner");
+	PathSearcher pathway(planningGraph.getNodes(), Point(0,0,0), Point(-2, -2, 0));
 
 	ROS_INFO("Creating graph edge clouds");
 

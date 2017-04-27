@@ -3,12 +3,13 @@
 // Last updated April 27 2017 by Trent Ziemer
 
 #include <wmp/common.h>
+#include <wmp/free_space_graph.h>
 
 class PathSearcher
 {
 public:
 
-	PathSearcher(Grid);
+	PathSearcher(std::vector<GraphNode>, Point, Point);
 
 private:
 };

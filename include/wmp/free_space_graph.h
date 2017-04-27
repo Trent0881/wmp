@@ -5,7 +5,7 @@
 #include <wmp/common.h>
 #include <wmp/grid.h>
 
-// Such bad style
+// Such bad style!
 PointCloud generateCloudLine(float x1, float y1, float x2, float y2);
 
 // Globals for checking/testing
