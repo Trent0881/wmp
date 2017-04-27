@@ -19,10 +19,8 @@ public:
 	int horizontal_cell_count;
 	int vertical_cell_count;
 
-	float horizontal_resolution;
-	float vertical_resolution;
-
-
+	//get float horizontal_resolution;
+	// get float vertical_resolution;
 
 private:
 };

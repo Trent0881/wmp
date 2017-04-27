@@ -84,7 +84,7 @@ bool getDataFromFile(std::string filename)
 // Builds and returns a point cloud in a line from the first coordinate x,y to the second coordinate x,y. z = 0.
 PointCloud generateCloudLine(float x1, float y1, float x2, float y2)
 {
-	int number_of_points_per_line = 50; //std::max((double)50, 100*sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)));
+	int number_of_points_per_line = 30; //std::max((double)50, 100*sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)));
 	float delta_x = (x2 - x1)/number_of_points_per_line;
 	float delta_y = (y2 - y1)/number_of_points_per_line;
 	PointCloud line_cloud;
@@ -134,6 +134,7 @@ int main(int argc, char **argv)
 	}
 
 	ROS_INFO("Building planning graph object");
+
 	GoodGrid grid = GoodGrid(cloudCompressor.getGrid());
 
 	FreeSpaceGraph planningGraph(&grid, 20, 20);
@@ -142,7 +143,7 @@ int main(int argc, char **argv)
 
 	ROS_INFO("Connecting nodes on graph");
 
-	planningGraph.connectNodes(2);
+	planningGraph.connectNodes(0.7);
 
 	ROS_INFO("Creating graph edge clouds");
 
@@ -162,7 +163,6 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-/*
 
 	// Linear collisions
 	PointCloud bad_graph_edge_clouds;
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-*/
+
 	ROS_INFO("Done with processing and ---planning---!");
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
@@ -216,8 +216,8 @@ int main(int argc, char **argv)
 		graph_edge_clouds.header.frame_id = "rot";
 		graph_edge_clouds_pub.publish(graph_edge_clouds);
 		
-		//bad_graph_edge_clouds.header.frame_id = "rot";
-		//bad_graph_edge_clouds_pub.publish(bad_graph_edge_clouds);
+		bad_graph_edge_clouds.header.frame_id = "rot";
+		bad_graph_edge_clouds_pub.publish(bad_graph_edge_clouds);
 
 		ros::spinOnce();
 		count_rate.sleep();

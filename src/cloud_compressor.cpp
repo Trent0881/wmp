@@ -120,7 +120,8 @@ bool CloudCompressor::compressToGrid()
 
 	cell_min_x = grid_min_x;
 	cell_max_x = grid_min_x;
-
+	obstacle_grid.data.clear();
+	
 	while(cell_max_x < grid_max_x)
 	{
 
@@ -154,7 +155,7 @@ bool CloudCompressor::compressToGrid()
 			points_in_cell = 0;
 		}
 	}
-
+	obstacle_grid.data[0] = 0; // yes
 	ROS_INFO("Grid size: %lu", obstacle_grid.data.size());
 
 	return true;

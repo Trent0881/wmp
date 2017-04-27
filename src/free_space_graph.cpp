@@ -33,31 +33,35 @@ FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per
 	}
 	else
 	{
-		for(int i = 0; i < cells_per_row; i++)
+		for(int i = 0; i < cells_per_column; i++)
 		{
-			grid_index_x = static_cast<int>(round(i * grid->horizontal_cell_count / cells_per_row)); /// grid->horizontal_resolution);
-			for(int j = 0; j < cells_per_column; j++)
+			grid_index_x = static_cast<int>(round(i * grid->vertical_cell_count  / cells_per_column)); /// grid->horizontal_resolution);
+			for(int j = 0; j <  cells_per_row; j++)
 			{
-				grid_index_y = static_cast<int>(round(j * grid->vertical_cell_count / cells_per_column));
+				grid_index_y = static_cast<int>(round(j * grid->horizontal_cell_count / cells_per_row));
+
+				position_x = (i * grid->height)/ ((float)cells_per_column) - (grid->height/2);
+				position_y = (j * grid->width)/ ((float)cells_per_row) - (grid->width/2);
 
 				if(grid->data[grid_index_x][grid_index_y] < occupancy_threshold)
 				{
-					position_x = (i * grid->width)/ ((float)grid->horizontal_cell_count) - (grid->width/2);
-					position_y = (j * grid->height)/ ((float)grid->vertical_cell_count) - (grid->height/2);
-					ROS_INFO("Adding node @ [%d, %d] pos = (%f, %f).", i, j, position_x, position_y);
-					ROS_INFO("with i = %d, j = %d, hcc = %d, vcc = %d, ", i , j, grid->horizontal_cell_count, grid->vertical_cell_count);
-					ROS_INFO("and cpr = %d, cpc = %d, gix = %d, giy = %d   ", cells_per_row, cells_per_column, grid_index_x, grid_index_y);
-					ROS_INFO(" ");
+					//ROS_INFO("Adding node @ [%d, %d] pos = (%f, %f).", i, j, position_x, position_y);
+					//ROS_INFO("with i = %d, j = %d, hcc = %d, vcc = %d, ", i , j, grid->horizontal_cell_count, grid->vertical_cell_count);
+					//ROS_INFO("and cpr = %d, cpc = %d, gix = %d, giy = %d   ", cells_per_row, cells_per_column, grid_index_x, grid_index_y);
 					nodeList.push_back(GraphNode(i, j, position_x, position_y, node_master_id));
 					
 					node_master_id++;
 				}
 				else
 				{
-					ROS_INFO("Cant add node @ [%d, %d] pos = (%f, %f) due to obstacle collision", i, j, position_x, position_y);
+					//ROS_INFO("Cant add node @ [%d, %d] pos = (%f, %f) due to obstacle collision", i, j, position_x, position_y);
 				}
 			}
 		}
+
+
+
+
 	}
 }
 
@@ -119,7 +123,6 @@ GraphNode::GraphNode(float x_pos, float y_pos)
 {
 	x = x_pos;
 	y = y_pos;
-
 }
 
 // Check distance to another node
@@ -131,6 +134,10 @@ float GraphNode::checkConnectivity(GraphNode distantNode, GoodGrid * gridPtr, fl
 	{
 		// Preemptive failure, due to too far away. The integer "-1" is the error code for this case.
 		return -1;
+	}
+	else if(distance == 0)
+	{
+		ROS_WARN("WHY ARE YOU COMPUTING A DISTANCE OF ZERO?");
 	}
 	else
 	{
@@ -148,7 +155,7 @@ float GraphNode::checkConnectivity(GraphNode distantNode, GoodGrid * gridPtr, fl
 		int a;
 		int b;
 
-		PointCloud lineCloud = generateCloudLine((float)x, (float)y, (float)distantNode.x, (float)distantNode.y);
+		PointCloud lineCloud = generateCloudLine((float)x * (gridPtr->vertical_cell_count/20), (float)y * (gridPtr->horizontal_cell_count/20), (float)distantNode.x, (float)distantNode.y);
 		for(int i = 0; i < lineCloud.size(); i++)
 		{
 			a = static_cast<int>(round(lineCloud[i].x));
@@ -157,9 +164,28 @@ float GraphNode::checkConnectivity(GraphNode distantNode, GoodGrid * gridPtr, fl
 			if(gridPtr->data[a][b] > connectivity_threshold)
 			{
 				ROS_INFO("Obstacle at (%d %d)", a, b);
-				//g_bad_nodes.push_back(Point(x*gridPtr->info.resolution - 2.5, y*gridPtr->info.resolution - 2.5, 0));
-				//g_bad_nodes_two.push_back(Point(distantNode.x*gridPtr->info.resolution - 2.5, distantNode.y*gridPtr->info.resolution - 2.5, 0));
+				g_bad_nodes.push_back(Point(x/2.5 - 2.5, y/2.5 - 2.5, 0)); ///???
+				g_bad_nodes_two.push_back(Point(distantNode.x/2.5 - 2.5, distantNode.y/2.5 - 2.5, 0)); ///???
 				return -1;
+			}
+			else
+			{
+				//ROS_INFO("Threshhold is apparently good with value (%d) less than %d", gridPtr->data[a][b], connectivity_threshold);
+			}
+		}
+
+		for(int i = 0; i < gridPtr->data.size(); i++)
+		{
+			for(int j = 0; j < gridPtr->data[i].size(); j++)
+			{
+				if(gridPtr->data[i][j] > 0)
+				{
+					//ROS_INFO("gridPtr->data[%d][%d]: %d", i, j, gridPtr->data[i][j]);
+					if(i == a && j == b)
+					{
+						ROS_WARN("LIAR");
+					}
+				}
 			}
 		}
 
