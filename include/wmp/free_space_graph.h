@@ -39,8 +39,8 @@ public:
 	GraphNode(float, float);
 	float distanceTo(GraphNode);
 	bool addEdge(GraphNode*, float);
-	float x;
-	float y;
+	int x;
+	int y;
 	Point point;
 
 	float checkConnectivity(GraphNode, GoodGrid*, float, int);
@@ -59,8 +59,10 @@ public:
 	FreeSpaceGraph(GoodGrid *, int, int);
 	bool connectNodes(float);
 	std::vector<GraphNode> getNodes();
-	PointCloud getNodesAsPointCloud();
+	PointCloud getPointCloud();
+	
 	std::vector<GraphNode> nodeList;
+
 private:
 
 	GoodGrid * gridPtr;

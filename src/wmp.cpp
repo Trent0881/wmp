@@ -137,13 +137,14 @@ int main(int argc, char **argv)
 
 	GoodGrid grid = GoodGrid(cloudCompressor.getGrid());
 
-	FreeSpaceGraph planningGraph(&grid, 20, 20);
+	int cells_per_side = 30;
+	FreeSpaceGraph planningGraph(&grid, cells_per_side, cells_per_side);
 	
-	PointCloud sample_points = planningGraph.getNodesAsPointCloud();
+	PointCloud sample_points = planningGraph.getPointCloud();
 
 	ROS_INFO("Connecting nodes on graph");
 
-	planningGraph.connectNodes(0.7);
+	planningGraph.connectNodes((float)10/cells_per_side);
 
 	ROS_INFO("Creating graph edge clouds");
 
@@ -173,11 +174,11 @@ int main(int argc, char **argv)
 		{
 			//ROS_INFO("--- #%d node %d at (%f, %f)", j, planningGraph.nodeList[i].nearbyNodes[j].distantNode->id, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.x, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.y);
 			
-			PointCloud bad_edge_cloud = generateCloudLine(g_bad_nodes[i].x, g_bad_nodes[i].y, g_bad_nodes_two[i].x, g_bad_nodes_two[i].y);
+			//PointCloud bad_edge_cloud = generateCloudLine(g_bad_nodes[i].x, g_bad_nodes[i].y, g_bad_nodes_two[i].x, g_bad_nodes_two[i].y);
 			
-			for(int k = 0; k < bad_edge_cloud.size(); k++)
+			//for(int k = 0; k < bad_edge_cloud.size(); k++)
 			{
-				bad_graph_edge_clouds.push_back(bad_edge_cloud[k]);
+				//bad_graph_edge_clouds.push_back(bad_edge_cloud[k]);
 			}
 		}
 	}
@@ -210,14 +211,14 @@ int main(int argc, char **argv)
 
 		grid_pub.publish(cloudCompressor.getGrid());
 
-		sample_points.header.frame_id = "lidar_link";
+		sample_points.header.frame_id = "rot";
 		sample_point_pub.publish(sample_points);
 			
 		graph_edge_clouds.header.frame_id = "rot";
 		graph_edge_clouds_pub.publish(graph_edge_clouds);
 		
-		bad_graph_edge_clouds.header.frame_id = "rot";
-		bad_graph_edge_clouds_pub.publish(bad_graph_edge_clouds);
+		//bad_graph_edge_clouds.header.frame_id = "rot";
+		//bad_graph_edge_clouds_pub.publish(bad_graph_edge_clouds);
 
 		ros::spinOnce();
 		count_rate.sleep();
