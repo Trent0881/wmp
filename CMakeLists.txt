@@ -38,9 +38,9 @@ cs_add_library(point_filter src/point_filter.cpp)
 cs_add_library(cloud_compressor src/cloud_compressor.cpp)
 cs_add_library(grid src/grid.cpp)
 cs_add_library(free_space_graph src/free_space_graph.cpp)
+cs_add_library(path_searcher src/path_searcher.cpp)
 
-
-target_link_libraries(wmp common point_filter cloud_compressor grid free_space_graph)
+target_link_libraries(wmp common point_filter cloud_compressor grid free_space_graph path_searcher)
 
 cs_install()
 cs_export()

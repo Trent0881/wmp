@@ -10,7 +10,6 @@ public:
 
 	GoodGrid(Grid);
 
-
 	std::vector< std::vector< int > > data;
 
 	float width;
@@ -18,9 +17,6 @@ public:
 
 	int horizontal_cell_count;
 	int vertical_cell_count;
-
-	//get float horizontal_resolution;
-	// get float vertical_resolution;
 
 private:
 };

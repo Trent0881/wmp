@@ -1,6 +1,6 @@
 // Free Space Graph object definitions
 // Created April 23 2017 by Trent Ziemer
-// Last updated April 26 2017 by Trent Ziemer
+// Last updated April 27 2017 by Trent Ziemer
 
 #include <wmp/free_space_graph.h>
 #include <math.h>
@@ -101,10 +101,6 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 				{			
 					nodeList[i].addEdge(&nodeList[j], distanceHeuristic);
 				}
-				else
-				{
-				}
-				// MORE???!??!
 			}
 		}
 	}

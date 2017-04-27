@@ -60,7 +60,7 @@ public:
 	bool connectNodes(float);
 	std::vector<GraphNode> getNodes();
 	PointCloud getPointCloud();
-	
+
 	std::vector<GraphNode> nodeList;
 
 private:
@@ -73,8 +73,5 @@ private:
 	float y_offset;
 	float grid_resolution;
 };
-
-// Forward function declaration for a mathematical operation that we need
-bool doIntersect(GraphNode, GraphNode, GraphNode, GraphNode);
 
 bool isIntersecting(GraphNode, GraphNode, GraphNode, GraphNode);

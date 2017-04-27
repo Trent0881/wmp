@@ -1,11 +1,13 @@
 // Wobbler Motion Planning node
 // Created April 14 2017 by Trent Ziemer
-// Last updated April 23 2017 by Trent Ziemer
+// Last updated April 27 2017 by Trent Ziemer
 
+// WMP-specific custom libraries for object
 #include <wmp/common.h>
 #include <wmp/point_filter.h>
 #include <wmp/cloud_compressor.h>
-#include <wmp/free_space_graph.h>
+#include <wmp/free_space_graph.h> // (which includes grid.h/grid.cpp)
+#include <wmp/path_searcher.h>
 
 // File IO for C++
 #include <iostream>
@@ -19,7 +21,6 @@ Point g_center_point;
 
 ros::NodeHandle * nh_ptr;
 
-// DESCRIPTION
 bool getDataFromFile(std::string filename)
 {
     std::ifstream input_data;
