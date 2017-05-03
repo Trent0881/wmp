@@ -1,6 +1,6 @@
 // Wobbler Motion Planning node
 // Created April 14 2017 by Trent Ziemer
-// Last updated April 27 2017 by Trent Ziemer
+// Last updated May 3 2017 by Trent Ziemer
 
 // WMP-specific custom libraries for object
 #include <wmp/common.h>
@@ -144,6 +144,7 @@ int main(int argc, char **argv)
 
 	ROS_INFO("Connecting nodes on graph");
 	float connection_radius = (float)10/cells_per_side;
+	
 	planningGraph.connectNodes(connection_radius);
 
 	ROS_INFO("Building node-based pathway planner");
@@ -186,7 +187,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	ROS_INFO("Done with processing and ---planning---!");
+	ROS_INFO("Done with processing and planning!");
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
 	ros::Publisher filtered_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("fpc", 1);
