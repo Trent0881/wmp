@@ -7,7 +7,6 @@
 class GoodGrid
 {
 public:
-
 	GoodGrid(Grid);
 
 	std::vector< std::vector< int > > data;
@@ -17,6 +16,4 @@ public:
 
 	int horizontal_cell_count;
 	int vertical_cell_count;
-
-private:
 };

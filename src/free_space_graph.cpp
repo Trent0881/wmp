@@ -58,10 +58,6 @@ FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per
 				}
 			}
 		}
-
-
-
-
 	}
 }
 
@@ -84,7 +80,7 @@ PointCloud FreeSpaceGraph::getPointCloud()
 
 bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 {
-	float distanceHeuristic;
+	float node_distance;
 
 	for(int i = 0; i < nodeList.size(); i++)
 	{
@@ -92,14 +88,16 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 		{
 			if(i != j)
 			{
+				// For any two distinct nodes in our area with indices i and j...
 				//ROS_INFO("Conn dist = %f, grid res = %f, cd/gs = %f", connectivity_distance, grid_resolution, connectivity_distance/grid_resolution);
-				// For any two distinct nodes in our area with labels i and j...
 				//ROS_INFO("Checking conn btwn: (");
-				distanceHeuristic = nodeList[i].checkConnectivity(nodeList[j], gridPtr, connectivity_distance, occupancy_threshold);
+				node_distance = nodeList[i].checkConnectivity(nodeList[j], gridPtr, connectivity_distance, occupancy_threshold);
 				
-				if(distanceHeuristic != -1)
-				{			
-					nodeList[i].addEdge(&nodeList[j], distanceHeuristic);
+				// If the nodes have a positive distance associated between them because they are within the connectivity distance...
+				if(node_distance != -1)
+				{		
+					// Add an edge to the list of vertex nodes on the graph, with weighting equal to that distance	
+					nodeList[i].addEdge(&nodeList[j], node_distance);
 				}
 			}
 		}

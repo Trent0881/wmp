@@ -34,8 +34,9 @@ GraphEdge::GraphEdge(GraphNode * distantNodePtr, float distance_weight)
 class GraphNode
 {
 public:
+	// grid_index_x, grid_index_y, position_x, position_y, and node_master_id
 	GraphNode(int, int, float, float, int);
-	// Degen node, not in master list. Used for testing.
+	// Degen node, not in actual graph list of nodes. Used for testing.
 	GraphNode(float, float);
 	float distanceTo(GraphNode);
 	bool addEdge(GraphNode*, float);

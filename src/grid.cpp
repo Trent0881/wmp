@@ -1,6 +1,6 @@
 // An actually Good Grid (GoodGrid) object for WMP
 // Created April 16 2017 by Trent Ziemer
-// Last updated April 26 2017 by Trent Ziemer
+// Last updated May 3 2017 by Trent Ziemer
 
 #include <wmp/grid.h>
 
@@ -45,9 +45,8 @@ GoodGrid::GoodGrid(Grid occupancy_grid)
 
 	horizontal_cell_count = occupancy_grid.info.width;
 	vertical_cell_count = occupancy_grid.info.height;
+
 	// Should be from a calc on the above kinda stuff, passed in from occ grid
 	width = 5;
 	height = 5;
-
-
 }

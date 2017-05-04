@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 	planningGraph.connectNodes(connection_radius);
 
 	ROS_INFO("Building node-based pathway planner");
-	PathSearcher pathway(planningGraph.getNodes(), Point(0,0,0), Point(-2, -2, 0));
+	PathSearcher pathway(planningGraph.getNodes(), Point(0,0,0), Point(-2, -2, 0), &grid);
 
 	ROS_INFO("Creating graph edge clouds");
 

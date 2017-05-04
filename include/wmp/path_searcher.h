@@ -9,9 +9,11 @@ class PathSearcher
 {
 public:
 
-	PathSearcher(std::vector<GraphNode>, Point, Point);
+	PathSearcher(std::vector<GraphNode>, Point, Point, GoodGrid*);
 
 private:
 
-
+	std::vector<GraphNode> closedSet;
+	std::vector<GraphNode> openSet;
+	GraphNode cameFrom(float, float);
 };
