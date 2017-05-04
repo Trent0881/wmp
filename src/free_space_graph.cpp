@@ -110,12 +110,16 @@ GraphNode::GraphNode(int i, int j, float x_pos, float y_pos, int id_number)
 	y = j;
 	point = Point(x_pos, y_pos, 0);
 	id = id_number;
+	gScore = INFINITY_APPROX;
+	fScore = INFINITY_APPROX;
 }
 
 GraphNode::GraphNode(float x_pos, float y_pos)
 {
 	x = x_pos;
 	y = y_pos;
+	gScore = INFINITY_APPROX;
+	fScore = INFINITY_APPROX;
 }
 
 // Check distance to another node

@@ -5,6 +5,8 @@
 #include <wmp/common.h>
 #include <wmp/grid.h>
 
+#define INFINITY_APPROX 999999
+
 // Such bad style!
 PointCloud generateCloudLine(float x1, float y1, float x2, float y2);
 
@@ -19,9 +21,8 @@ class GraphEdge
 public:
 
 	GraphEdge(GraphNode*, float);
-		GraphNode * distantNode;
+	GraphNode * distantNode;
 private:
-
 	float weight;
 };
 
@@ -48,6 +49,9 @@ public:
 	std::vector<GraphEdge> nearbyNodes;
 
 	int id;
+
+	unsigned int gScore;
+	unsigned int fScore;
 
 private:
 

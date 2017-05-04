@@ -13,7 +13,9 @@ public:
 
 private:
 
-	std::vector<GraphNode> closedSet;
-	std::vector<GraphNode> openSet;
+	std::vector<GraphNode*> closedSet;
+	std::vector<GraphNode*> openSet;
 	GraphNode cameFrom(float, float);
+	std::vector<unsigned int>gScore;
+	std::vector<unsigned int>fScore;
 };
