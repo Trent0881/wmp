@@ -43,20 +43,6 @@ float nodeDistance(GraphNode a, GraphNode b)
 	return sqrt(pow((a.point.x - b.point.x),2) + pow((a.point.y - b.point.y),2));
 }
 
-bool removeNodeByID(std::vector<GraphNode*> * graph, int identifier)
-{
-	for(int i = 0; i < graph->size(); i++)
-	{
-		if( (*graph)[i]->id == identifier)
-		{
-			ROS_INFO("Deleting element %d in list vector of size %lu!", i, graph->size());
-			graph->erase( graph->begin() + i );
-			return true;
-		}
-	}
-	return false;
-}
-
 int findLowestScoreNode(std::vector<GraphNode*> * list)
 {
 	float current_f_score;
@@ -79,16 +65,53 @@ int findLowestScoreNode(std::vector<GraphNode*> * list)
 	return (*list)[min_f_score_index]->id;
 }
 
-bool nodeInList(GraphNode * node, std::vector<GraphNode*> * graph)
+bool listHasIdentifier(int index, std::vector<int> * list)
 {
-	for(int i = 0; i < graph->size(); i++)
+	for(int i = 0; i < list->size(); i++)
 	{
-		if(node->id == (*graph)[i]->id)
+		if(index == (*list)[i])
 		{
 			return true;
 		}
 	}
 	return false;
+}
+
+bool removeFromVectorByValue(std::vector<int> * vector, int value)
+{
+	for(int i = 0; i < vector->size(); i++)
+	{
+		if( (*vector)[i] == value)
+		{
+			//ROS_INFO("Deleting element %d which is %d in list vector of size %lu!", i, (*vector)[i], vector->size());
+			vector->erase(vector->begin() + i);
+			return true;
+		}
+	}
+	return false;
+}
+
+int findLowestScoreNode_(std::vector<GraphNode> * list_of_all_nodes, std::vector<int> * list_of_indices)
+{
+	float current_f_score;
+	// Assumes that at least one f score is less than INFINITY_APPROX, and to be fair they all should be
+	float min_f_score = INFINITY_APPROX + 1;
+	int min_f_score_index = -1;
+	for(int i = 0; i < list_of_indices->size(); i++)
+	{
+		current_f_score = (*list_of_all_nodes)[ ((*list_of_indices)[i]) ].fScore;
+		if( current_f_score < min_f_score)
+		{
+			min_f_score = current_f_score;
+			min_f_score_index = (*list_of_indices)[i];
+		}
+	}
+
+	if(min_f_score_index < 0)
+	{
+		ROS_WARN("COULD NOT FIND min f score (b/c index < -1)!");
+	}
+	return (*list_of_all_nodes)[min_f_score_index].id;
 }
 
 PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Point end_point, GoodGrid * grid)
@@ -120,6 +143,7 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 	}
 
 	GraphNode* begin_node = &graph.back();
+	int begin_node_id = graph.back().id;
 
 	ROS_INFO("Graph size = %lu, last element neighbor count = %lu", graph.size(), graph.back().nearbyNodes.size());
 
@@ -129,34 +153,28 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 	}
 
 	GraphNode* goal_node = &graph.back();
+	int goal_node_id = graph.back().id;
 
 	ROS_INFO("Graph size = %lu, last element neighbor count = %lu", graph.size(), graph.back().nearbyNodes.size());
 
 	// Now search graph for path from start to end!!!!!
 
-	// Add start node to the list of unexplored nodes
-	openSet.push_back( begin_node );
-
-	GraphNode * current;
-	GraphNode * neighbor;
+	// Add start identification number to the list of unexplored nodes
+	openSet.push_back( begin_node_id );
 
 	int current_index;
 	int neighbor_index;
 
 	float tentative_gScore;
-
-	while(openSet.size() > 0)
+	int it = 0;
+	while(openSet.size() > 0 && it >= 0)
 	{
+		it++;
 		//current = findLowestScoreNode(&openSet);
-		current_index = findLowestScoreNode(&openSet);
-		ROS_WARN("AT LOC");
+		current_index = findLowestScoreNode_(&graph, &openSet);
+		ROS_WARN("Next node!");
+
 		ROS_INFO("id = %d, x = %f, y = %f, size(nearbyNodes) = %lu", graph[current_index].id,graph[current_index].point.x, graph[current_index].point.y, graph[current_index].nearbyNodes.size());
-		
-		ROS_INFO("graph[421].id = %d (421); graph[421].nearbyNodes.size() = %lu (8)", graph[421].id, graph[421].nearbyNodes.size());
-		ROS_INFO("graph[421].nearbyNodes[0].distantNode->id = %d (?); graph[421].nearbyNodes[0].point.x = %f (?)", graph[421].nearbyNodes[0].distantNode->id, graph[421].nearbyNodes[0].distantNode->point.x);
-		
-		ROS_INFO("BUT graph[current_index].id = %d (421);graph[current_index].nearbyNodes.size() = %lu (8)", graph[current_index].id, graph[current_index].nearbyNodes.size());
-		ROS_INFO("and graph[current_index].nearbyNodes[0].distantNode->id = %d (?); graph[current_index].nearbyNodes[0].point.x = %f (?)", graph[current_index].nearbyNodes[0].distantNode->id, graph[current_index].nearbyNodes[0].distantNode->point.x);
 
 		if(graph[current_index].id == goal_node->id)
 		{
@@ -165,45 +183,49 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 		}
 		else
 		{
-			ROS_INFO("Not yet at goal node");
-			if(!removeNodeByID(&openSet, graph[current_index].id))
+			//ROS_INFO("Not yet at goal node");
+			//openSet.erase( openSet.begin() + current_index );
+			if(!removeFromVectorByValue(&openSet, current_index))
 			{
-				ROS_WARN("COULD NOT FIND NODE ID %d TO REMOVE FROM GRAPH", graph[current_index].id);
+				ROS_WARN("FUCK");
 			}
+
 			closedSet.push_back(current_index);
-			ROS_INFO("Added current node to closed set");
+			//ROS_INFO("Added current node to closed set");
 		}
 
 		for(int i = 0; i < graph[current_index].nearbyNodes.size(); i++)
 		{
 			ROS_INFO("Current node's neighbor #%d has id #%d", i, graph[current_index].nearbyNodes[i].distantNode->id);
-			neighbor = graph[current_index].nearbyNodes[i].distantNode;
-			ROS_INFO("Analyzing node neighbor #%d", neighbor->id);
-			if(nodeInList(neighbor, &closedSet))
+			neighbor_index = graph[current_index].nearbyNodes[i].distantNode->id;
+			//ROS_INFO("Analyzing node neighbor #%d", neighbor_index);
+			if(listHasIdentifier(neighbor_index, &closedSet))
 			{
 				ROS_INFO("...node was in closed set list");
 				continue;
 			}
 
-			tentative_gScore = graph[current_index].gScore + nodeDistance(*neighbor, *goal_node);
+			tentative_gScore = graph[current_index].gScore + nodeDistance(graph[neighbor_index], *goal_node);
+
 			ROS_INFO("tentative_gScore of %f found for this neigbor", tentative_gScore);
-			ROS_INFO("Checking if neighbor is in open set");
-			if(!nodeInList(neighbor, &openSet))
+			//ROS_INFO("Checking if neighbor is in open set");
+
+			if(!listHasIdentifier(neighbor_index, &openSet))
 			{
-				ROS_INFO("Adding to open set because was not in it");
-				openSet.push_back(neighbor);
+				//ROS_INFO("Adding to open set because was not in it");
+				openSet.push_back(neighbor_index);
 			}
-			else if (tentative_gScore >= neighbor->gScore)
+			else if (tentative_gScore >= graph[neighbor_index].gScore)
 			{
-				ROS_INFO("Continuing because node was in list, but tentative_gScore >= neighbor G Score");
+				//ROS_INFO("Continuing because node was in list, but tentative_gScore >= neighbor G Score");
 				continue;
 			}
-			ROS_INFO("Neighbor node was in list, but had better g score than tentative_gScore, so good path, updating g scores!");
+			//ROS_INFO("Neighbor node was in list, but had better g score than tentative_gScore, so good path, updating g scores!");
 			// Then this is best path!
 			//cameFrom[neighbor] = current
-			neighbor->gScore = tentative_gScore;
-			neighbor->gScore = tentative_gScore + nodeDistance(*neighbor, *goal_node);
-			ROS_INFO("done with a single current node neighbor!");
+			graph[neighbor_index].gScore = tentative_gScore;
+			graph[neighbor_index].fScore = tentative_gScore + nodeDistance(graph[neighbor_index], *goal_node);
+			//ROS_INFO("done with a single current node neighbor!");
 		}
 	ROS_INFO("Done with each current node neighbor!");
 	}
