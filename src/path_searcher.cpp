@@ -179,7 +179,8 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 		if(graph[current_index].id == goal_node->id)
 		{
 			ROS_INFO("SUCCESS in ID MATCHING; current == goal is true");
-			// REC PATH HERE!
+			// REBUILD AND STORE PATH HERE BASED ON GRAPH MAP AND CAME FROM! Push to a vector
+			break;
 		}
 		else
 		{
@@ -221,8 +222,9 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 				continue;
 			}
 			//ROS_INFO("Neighbor node was in list, but had better g score than tentative_gScore, so good path, updating g scores!");
-			// Then this is best path!
-			//cameFrom[neighbor] = current
+			
+			// Then this is best path so far!
+			graph[neighbor_index].cameFrom = current_index;
 			graph[neighbor_index].gScore = tentative_gScore;
 			graph[neighbor_index].fScore = tentative_gScore + nodeDistance(graph[neighbor_index], *goal_node);
 			//ROS_INFO("done with a single current node neighbor!");

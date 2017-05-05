@@ -15,7 +15,7 @@ private:
 
 	std::vector<int> closedSet;
 	std::vector<int> openSet;
-	GraphNode cameFrom(float, float);
+	//std::vector<int> cameFrom;
 	std::vector<unsigned int>gScore;
 	std::vector<unsigned int>fScore;
 };

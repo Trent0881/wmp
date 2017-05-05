@@ -51,6 +51,7 @@ public:
 
 	float gScore;
 	float fScore;
+	int cameFrom;
 
 private:
 
