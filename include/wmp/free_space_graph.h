@@ -22,7 +22,6 @@ public:
 
 	GraphEdge(GraphNode*, float);
 	GraphNode * distantNode;
-private:
 	float weight;
 };
 
@@ -50,8 +49,8 @@ public:
 
 	int id;
 
-	unsigned int gScore;
-	unsigned int fScore;
+	float gScore;
+	float fScore;
 
 private:
 

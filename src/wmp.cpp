@@ -1,6 +1,6 @@
 // Wobbler Motion Planning node
 // Created April 14 2017 by Trent Ziemer
-// Last updated May 3 2017 by Trent Ziemer
+// Last updated May 5 2017 by Trent Ziemer
 
 // WMP-specific custom libraries for object
 #include <wmp/common.h>
@@ -146,6 +146,17 @@ int main(int argc, char **argv)
 	float connection_radius = (float)10/cells_per_side;
 	
 	planningGraph.connectNodes(connection_radius);
+
+	ROS_INFO("Checking node consistency across edges!");
+	std::vector<GraphNode> nodes = planningGraph.getNodes();
+	for(int i = 0; i < nodes.size(); i++)
+	{
+		ROS_INFO("Node @ index %d with id %d.", i, nodes[i].id);
+		for(int j = 0; j < nodes[i].nearbyNodes.size(); j++)
+		{
+			ROS_INFO("   is connected to node with id %d", nodes[i].nearbyNodes[j].distantNode->id);	
+		}
+	}
 
 	ROS_INFO("Building node-based pathway planner");
 	PathSearcher pathway(planningGraph.getNodes(), Point(0.15,0,0), Point(-2, -2, 0), &grid);
