@@ -52,9 +52,6 @@ public:
 	float gScore;
 	float fScore;
 	int cameFrom;
-
-private:
-
 };
 
 class FreeSpaceGraph
@@ -62,13 +59,13 @@ class FreeSpaceGraph
 public:
 	FreeSpaceGraph(GoodGrid *, int);
 	FreeSpaceGraph(GoodGrid *, int, int);
+
 	bool connectNodes(float);
 	std::vector<GraphNode> getNodes();
 	PointCloud getPointCloud();
+	PointCloud createEdgeCloud();
 
 	std::vector<GraphNode> nodeList;
-
-	PointCloud createEdgeCloud();
 
 private:
 

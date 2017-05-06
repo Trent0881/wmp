@@ -50,7 +50,7 @@ FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per
 					//ROS_INFO("Adding node @ [%d, %d] pos = (%f, %f).", i, j, position_x, position_y);
 					//ROS_INFO("with i = %d, j = %d, hcc = %d, vcc = %d, ", i , j, grid->horizontal_cell_count, grid->vertical_cell_count);
 					//ROS_INFO("and cpr = %d, cpc = %d, gix = %d, giy = %d   ", cells_per_row, cells_per_column, grid_index_x, grid_index_y);
-					nodeList.push_back(GraphNode(grid_index_x, grid_index_y, position_x, position_y, node_master_id));
+					nodeList.push_back(GraphNode(grid_index_x, grid_index_y, 1, 1, node_master_id));
 					node_master_id++;
 				}
 			}
@@ -152,7 +152,7 @@ float GraphNode::checkConnectivity(GraphNode distantNode, GoodGrid * gridPtr, fl
 	}
 	else if(distance == 0)
 	{
-		ROS_WARN("WHY ARE YOU COMPUTING A DISTANCE OF ZERO?");
+		//ROS_WARN("WHY ARE YOU COMPUTING A DISTANCE OF ZERO?");
 	}
 	else
 	{

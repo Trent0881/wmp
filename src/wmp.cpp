@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 
 	ROS_INFO("Connecting nodes on graph");
 
-	float connection_radius = (float)9/cells_per_side;
+	float connection_radius = (float)10/cells_per_side;
 	planningGraph.connectNodes(connection_radius);
 
 	ROS_INFO("Checking node consistency across edges!");
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 
 	ROS_INFO("Building node-based pathway planner");
 
-	PathSearcher pathway(planningGraph.getNodes(), Point(0.3, 1.5, 0), Point(2, -1.1, 0), &grid);
+	PathSearcher pathway(planningGraph.getNodes(), Point(0.3, 1.5, 0), Point(1.1, -1.1, 0), &grid); //Point(1.1, -1.1, 0)
 
 	ROS_INFO("Creating graph edge clouds");
 
