@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 
 	GoodGrid grid = GoodGrid(cloudCompressor.getGrid());
 
-	int cells_per_side = 30;
+	int cells_per_side = 80;
 	FreeSpaceGraph planningGraph(&grid, cells_per_side, cells_per_side);
 	
 	PointCloud sample_points = planningGraph.getPointCloud();
@@ -151,15 +151,15 @@ int main(int argc, char **argv)
 	std::vector<GraphNode> nodes = planningGraph.getNodes();
 	for(int i = 0; i < nodes.size(); i++)
 	{
-		ROS_INFO("Node @ index %d with id %d.", i, nodes[i].id);
+		//ROS_INFO("Node @ index %d with id %d.", i, nodes[i].id);
 		for(int j = 0; j < nodes[i].nearbyNodes.size(); j++)
 		{
-			ROS_INFO("   is connected to node with id %d", nodes[i].nearbyNodes[j].distantNode->id);	
+			//ROS_INFO("   is connected to node with id %d", nodes[i].nearbyNodes[j].distantNode->id);	
 		}
 	}
 
 	ROS_INFO("Building node-based pathway planner");
-	PathSearcher pathway(planningGraph.getNodes(), Point(0.15,0,0), Point(-2, -2, 0), &grid);
+	PathSearcher pathway(planningGraph.getNodes(), Point(0,-0.5,0), Point(1.5, -1.1, 0), &grid);
 
 	ROS_INFO("Creating graph edge clouds");
 
@@ -180,24 +180,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// Linear collisions
-	PointCloud bad_graph_edge_clouds;
-	for(int i = 0; i < planningGraph.nodeList.size(); i++)
-	{
-		//ROS_INFO("Node %d at (%f, %f) is connected to:", i, planningGraph.nodeList[i].point.x, planningGraph.nodeList[i].point.y);
-		for(int j = 0; j < planningGraph.nodeList[i].nearbyNodes.size(); j++)
-		{
-			//ROS_INFO("--- #%d node %d at (%f, %f)", j, planningGraph.nodeList[i].nearbyNodes[j].distantNode->id, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.x, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.y);
-			
-			//PointCloud bad_edge_cloud = generateCloudLine(g_bad_nodes[i].x, g_bad_nodes[i].y, g_bad_nodes_two[i].x, g_bad_nodes_two[i].y);
-			
-			//for(int k = 0; k < bad_edge_cloud.size(); k++)
-			{
-				//bad_graph_edge_clouds.push_back(bad_edge_cloud[k]);
-			}
-		}
-	}
-
 	ROS_INFO("Done with processing and planning!");
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
@@ -210,6 +192,8 @@ int main(int argc, char **argv)
 	ros::Publisher graph_edge_clouds_pub = nh.advertise<sensor_msgs::PointCloud2>("graph_edges", 1);
 	ros::Publisher bad_graph_edge_clouds_pub = nh.advertise<sensor_msgs::PointCloud2>("bad_graph_edges", 1);
    	
+   	ros::Publisher path_pub = nh.advertise<sensor_msgs::PointCloud2>("pathway", 1);
+
    	int time_to_pub = 100;
 	ros::Rate count_rate(2); 
 	int count = 0;
@@ -234,6 +218,8 @@ int main(int argc, char **argv)
 		
 		//bad_graph_edge_clouds.header.frame_id = "rot";
 		//bad_graph_edge_clouds_pub.publish(bad_graph_edge_clouds);
+
+		path_pub.publish(pathway.pathCloud);
 
 		ros::spinOnce();
 		count_rate.sleep();

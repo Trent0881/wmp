@@ -12,7 +12,6 @@ GoodGrid::GoodGrid(Grid occupancy_grid)
 	for(int i = 0; i < occupancy_grid.data.size(); i++)
 	{
 		//ROS_INFO("Trying to get data at %d, with i = %d, j = %d", index*occupancy_grid.info.width + j, index, j);
-
 		row_vector.push_back(occupancy_grid.data[index*occupancy_grid.info.width + j]);
 		if( ((index + 1) % occupancy_grid.info.height) == 0)
 		{
