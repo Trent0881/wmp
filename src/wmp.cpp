@@ -16,7 +16,6 @@
 PointCloud g_point_cloud_data;
 PointCloud g_shrunk_cloud;
 PointCloud g_filtered_cloud;
-Point g_center_point;
 
 ros::NodeHandle * nh_ptr;
 
@@ -55,7 +54,6 @@ bool getDataFromFile(std::string filename)
         {
         	//ROS_INFO("Read a Point(%f, %f, %f)", x, y, value);
         	pointFilter.setPoint(Point(x, y, value));
-        	g_center_point = Point(x, y, value);
             if(pointFilter.translateAndShrink())
         	{
         		g_shrunk_cloud.push_back(pointFilter.getPoint());
@@ -84,7 +82,7 @@ bool getDataFromFile(std::string filename)
 // Builds and returns a point cloud in a line from the first coordinate x,y to the second coordinate x,y. z = 0.
 PointCloud generateCloudLine(float x1, float y1, float x2, float y2)
 {
-	int number_of_points_per_line = 30; //std::max((double)50, 100*sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2)));
+	int number_of_points_per_line = 10;
 	float delta_x = (x2 - x1)/number_of_points_per_line;
 	float delta_y = (y2 - y1)/number_of_points_per_line;
 	PointCloud line_cloud;
@@ -137,50 +135,29 @@ int main(int argc, char **argv)
 
 	GoodGrid grid = GoodGrid(cloudCompressor.getGrid());
 
-	int cells_per_side = 80;
+	int cells_per_side = 50;
 	FreeSpaceGraph planningGraph(&grid, cells_per_side, cells_per_side);
 	
 	PointCloud sample_points = planningGraph.getPointCloud();
 
 	ROS_INFO("Connecting nodes on graph");
-	float connection_radius = (float)10/cells_per_side;
-	
+
+	float connection_radius = (float)9/cells_per_side;
 	planningGraph.connectNodes(connection_radius);
 
 	ROS_INFO("Checking node consistency across edges!");
+
 	std::vector<GraphNode> nodes = planningGraph.getNodes();
-	for(int i = 0; i < nodes.size(); i++)
-	{
-		//ROS_INFO("Node @ index %d with id %d.", i, nodes[i].id);
-		for(int j = 0; j < nodes[i].nearbyNodes.size(); j++)
-		{
-			//ROS_INFO("   is connected to node with id %d", nodes[i].nearbyNodes[j].distantNode->id);	
-		}
-	}
 
 	ROS_INFO("Building node-based pathway planner");
-	PathSearcher pathway(planningGraph.getNodes(), Point(0,-0.5,0), Point(1.5, -1.1, 0), &grid);
+
+	PathSearcher pathway(planningGraph.getNodes(), Point(0.3, 1.5, 0), Point(2, -1.1, 0), &grid);
 
 	ROS_INFO("Creating graph edge clouds");
 
-	PointCloud graph_edge_clouds;
-	for(int i = 0; i < planningGraph.nodeList.size(); i++)
-	{
-		//ROS_INFO("Node %d [%f, %f] at (%f, %f) is connected to:", i, planningGraph.nodeList[i].x, planningGraph.nodeList[i].y, planningGraph.nodeList[i].point.x, planningGraph.nodeList[i].point.y);
-		for(int j = 0; j < planningGraph.nodeList[i].nearbyNodes.size(); j++)
-		{
-			//ROS_INFO("--- #%d node %d at (%f, %f)", j, planningGraph.nodeList[i].nearbyNodes[j].distantNode->id, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.x, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.y);
-			
-			PointCloud edge_cloud = generateCloudLine(planningGraph.nodeList[i].point.x, planningGraph.nodeList[i].point.y, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.x, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.y);
-			
-			for(int k = 0; k < edge_cloud.size(); k++)
-			{
-				graph_edge_clouds.push_back(edge_cloud[k]);
-			}
-		}
-	}
+	PointCloud graph_edge_clouds = planningGraph.createEdgeCloud();
 
-	ROS_INFO("Done with processing and planning!");
+	ROS_INFO("Done with processing and planning! Now publishing all this data.");
 
 	ros::Publisher input_point_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("ipc", 1);
 	ros::Publisher filtered_cloud_pub = nh.advertise<sensor_msgs::PointCloud2>("fpc", 1);
@@ -215,37 +192,13 @@ int main(int argc, char **argv)
 			
 		graph_edge_clouds.header.frame_id = "rot";
 		graph_edge_clouds_pub.publish(graph_edge_clouds);
-		
-		//bad_graph_edge_clouds.header.frame_id = "rot";
-		//bad_graph_edge_clouds_pub.publish(bad_graph_edge_clouds);
 
+		pathway.pathCloud.header.frame_id = "rot";
 		path_pub.publish(pathway.pathCloud);
 
 		ros::spinOnce();
 		count_rate.sleep();
 		count++;
 	}
-
-    bool test_active = true;
-    bool test_passed = true;
-
-    if(test_active == true)
-    {
-
-    }
-
-    // Check this-node functional testing and report to user
-    if(test_passed == false)
-    {
-    	ROS_WARN("FUNCTIONAL TESTING FAILED: Something is borked");
-    }
-    else
-    {
-    	nh_ptr->setParam("/success", true);
-    }
-
-    // Tell test node that we are done, so it can start doing things
-    nh_ptr->setParam("/planning_done", true);
-
     return 0;
 }

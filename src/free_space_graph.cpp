@@ -25,7 +25,6 @@ FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per
 			grid_index_y = rand() % grid->vertical_cell_count;
 			if(grid->data[grid_index_x][grid_index_y] > occupancy_threshold)
 			{
-				// position_x = ?
 				nodeList.push_back(GraphNode(grid_index_x, grid_index_y, position_x, position_y, node_master_id));
 				node_master_id++;
 			}	
@@ -43,18 +42,16 @@ FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per
 				position_x = ( (i * grid->height)/ ((float)cells_per_column - 1) ) - (grid->height/2);
 				position_y = ( (j * grid->width)/ ((float)cells_per_row - 1) ) - (grid->width/2);
 
+				position_x -= (0.5) * (5/cells_per_column);
+				position_y += (5*0.5) * (5/cells_per_row);
+
 				if(grid->data[grid_index_x][grid_index_y] < occupancy_threshold)
 				{
 					//ROS_INFO("Adding node @ [%d, %d] pos = (%f, %f).", i, j, position_x, position_y);
 					//ROS_INFO("with i = %d, j = %d, hcc = %d, vcc = %d, ", i , j, grid->horizontal_cell_count, grid->vertical_cell_count);
 					//ROS_INFO("and cpr = %d, cpc = %d, gix = %d, giy = %d   ", cells_per_row, cells_per_column, grid_index_x, grid_index_y);
 					nodeList.push_back(GraphNode(grid_index_x, grid_index_y, position_x, position_y, node_master_id));
-					
 					node_master_id++;
-				}
-				else
-				{
-					//ROS_INFO("Cant add node @ [%d, %d] pos = (%f, %f) due to obstacle collision", i, j, position_x, position_y);
 				}
 			}
 		}
@@ -103,6 +100,28 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 		}
 	}
 }
+
+PointCloud FreeSpaceGraph::createEdgeCloud()
+{
+	PointCloud graph_edge_clouds;
+	for(int i = 0; i < nodeList.size(); i++)
+	{
+		//ROS_INFO("Node %d [%f, %f] at (%f, %f) is connected to:", i, planningGraph.nodeList[i].x, planningGraph.nodeList[i].y, planningGraph.nodeList[i].point.x, planningGraph.nodeList[i].point.y);
+		for(int j = 0; j < nodeList[i].nearbyNodes.size(); j++)
+		{
+			//ROS_INFO("--- #%d node %d at (%f, %f)", j, planningGraph.nodeList[i].nearbyNodes[j].distantNode->id, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.x, planningGraph.nodeList[i].nearbyNodes[j].distantNode->point.y);
+			
+			PointCloud edge_cloud = generateCloudLine(nodeList[i].point.x, nodeList[i].point.y, nodeList[i].nearbyNodes[j].distantNode->point.x, nodeList[i].nearbyNodes[j].distantNode->point.y);
+			
+			for(int k = 0; k < edge_cloud.size(); k++)
+			{
+				graph_edge_clouds.push_back(edge_cloud[k]);
+			}
+		}
+	}	
+	return graph_edge_clouds;
+}
+
 
 GraphNode::GraphNode(int i, int j, float x_pos, float y_pos, int id_number)
 {

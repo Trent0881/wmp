@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /PointCloud27
       Splitter Ratio: 0.5
     Tree Height: 745
   - Class: rviz/Selection
@@ -262,7 +261,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.15
+      Size (m): 0.09
       Style: Spheres
       Topic: /wmp/pathway
       Unreliable: false
@@ -293,22 +292,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.75187
+      Distance: 2.66683
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.00406357
-        Y: 0.00304091
-        Z: -0.0831567
+        X: 0.163354
+        Y: 1.22508
+        Z: -0.0736703
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.5598
+      Pitch: -1.5148
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.56723
+      Yaw: 6.27727
     Saved: ~
 Window Geometry:
   Displays:

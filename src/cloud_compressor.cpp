@@ -25,6 +25,7 @@ bool CloudCompressor::setCloud(PointCloud input_cloud)
 	// Set pose of the map wrt the world, to correct for offsetting, and a weird x-y axis rotation that is innate
 	geometry_msgs::Pose examplePose;
 
+	// Really?
 	geometry_msgs::Quaternion quat;
     quat.x = 1;
     quat.y = 1;
@@ -47,42 +48,16 @@ bool CloudCompressor::compressFlat()
 	Point compressed_point;
 	for(int i = 0; i < uncompressed_cloud.points.size(); i++)
 	{
+		// Force z = 0 is fine for 2D
 		compressed_point = Point(uncompressed_cloud.points[i].x, uncompressed_cloud.points[i].y, 0);
 		compressed_cloud.push_back(compressed_point);
 	} 
-
 	return true;
 }
 
 bool CloudCompressor::compressToGrid()
 {
-	grid_min_x = 0;
-	grid_min_y = 0;
-	grid_max_x = 0;
-	grid_max_y = 0;
-
-	for(int i = 0; i < compressed_cloud.points.size(); i++)
-	{
-		if (grid_min_x > compressed_cloud.points[i].x)
-		{
-			grid_min_x = compressed_cloud.points[i].x;
-		}
-		else if (grid_max_x < compressed_cloud.points[i].x)
-		{
-			grid_max_x = compressed_cloud.points[i].x;
-		}
-		
-		if (grid_min_y > compressed_cloud.points[i].y)
-		{
-			grid_min_y = compressed_cloud.points[i].y;
-		} 
-		else if (grid_max_y < compressed_cloud.points[i].y)
-		{
-			grid_max_y = compressed_cloud.points[i].y;
-		}
-	}
-
- 	// NEW!
+	// Dumb
 	grid_min_x = -2.5;
 	grid_max_x = 2.5;
 	grid_min_y = -2.5;
@@ -101,8 +76,6 @@ bool CloudCompressor::compressToGrid()
 
 	const float cell_size_x = grid_width/obstacle_grid.info.width;
 	const float cell_size_y = cell_size_x; // This is a forcing thing, so it is square not rectangular. Not happy about it.
-
-	ROS_INFO("Cell size is thus %f by %f meters in size!", cell_size_x, cell_size_y);
 
 	float cell_min_x;
 	float cell_max_x;
@@ -124,7 +97,6 @@ bool CloudCompressor::compressToGrid()
 	
 	while(cell_max_x < grid_max_x)
 	{
-
 		cell_min_x = cell_max_x;
 		cell_max_x = cell_min_x + cell_size_x;
 
@@ -145,19 +117,15 @@ bool CloudCompressor::compressToGrid()
 				 && compressed_cloud.points[k].y <= cell_max_y)
 				{
 					points_in_cell++;
-					// Either or works, mate 
-					//points_in_cell = 100;
 				}
 			}
 
-			obstacle_grid.data.push_back(30*sqrt(sqrt(points_in_cell))); // I HOPE THIS DOESNT EXCEED 100
+			obstacle_grid.data.push_back(30*sqrt(sqrt(points_in_cell))); // I HOPE THIS DOESNT EXCEED 100!
 
 			points_in_cell = 0;
 		}
 	}
-	obstacle_grid.data[0] = 0; // yes
-	ROS_INFO("Grid size: %lu", obstacle_grid.data.size());
-
+	obstacle_grid.data[0] = 0; // Sometimes your shit gets all retarded and you're fucked up
 	return true;
 }
 

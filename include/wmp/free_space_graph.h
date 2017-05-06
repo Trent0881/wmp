@@ -68,6 +68,8 @@ public:
 
 	std::vector<GraphNode> nodeList;
 
+	PointCloud createEdgeCloud();
+
 private:
 
 	GoodGrid * gridPtr;

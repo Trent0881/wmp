@@ -33,15 +33,6 @@ GoodGrid::GoodGrid(Grid occupancy_grid)
 		assert(data[i].size() == occupancy_grid.info.width);
 	}
 
-	for(int i = 0; i < occupancy_grid.info.height; i++)
-	{
-		for(int j = 0; j < occupancy_grid.info.width; j++)
-		{
-			//std::cout << data[i][j] << " ";
-		}
-		//std::cout << std::endl;
-	}
-
 	horizontal_cell_count = occupancy_grid.info.width;
 	vertical_cell_count = occupancy_grid.info.height;
 

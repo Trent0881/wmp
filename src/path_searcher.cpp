@@ -8,7 +8,7 @@ bool addNodeToList(std::vector<GraphNode> * graph_node_list, GraphNode new_node,
 {
 	float node_distance;
 	int occupancy_threshold = 1;
-	float connectivity_distance = 0.2; // Can change whenever, I guess
+	float connectivity_distance = 0.25; // Can change whenever, I guess
 
 	unsigned int edges_added = 0;
 	// Add the start point to the node list graph with some connectivity distance and collision occupancy threshold to other nodes
@@ -42,28 +42,6 @@ float nodeDistance(GraphNode a, GraphNode b)
 	return sqrt(pow((a.point.x - b.point.x),2) + pow((a.point.y - b.point.y),2));
 }
 
-int findLowestScoreNode(std::vector<GraphNode*> * list)
-{
-	float current_f_score;
-	// Assumes that at least one f score is less than INFINITY_APPROX, and to be fair they all should be
-	float min_f_score = INFINITY_APPROX + 1;
-	int min_f_score_index = -1;
-	for(int i = 0; i < list->size(); i++)
-	{
-		current_f_score = (*list)[i]->fScore;
-		if( current_f_score < min_f_score)
-		{
-			min_f_score = current_f_score;
-			min_f_score_index = i;
-		}
-	}
-	if(min_f_score_index < 0)
-	{
-		ROS_WARN("COULD NOT FIND min f score (b/c index < -1)!");
-	}
-	return (*list)[min_f_score_index]->id;
-}
-
 bool listHasIdentifier(int index, std::vector<unsigned int> * list)
 {
 	for(int i = 0; i < list->size(); i++)
@@ -90,7 +68,7 @@ bool removeFromVectorByValue(std::vector<unsigned int> * vector, int value)
 	return false;
 }
 
-int findLowestScoreNode_(std::vector<GraphNode> * list_of_all_nodes, std::vector<unsigned int> * list_of_indices)
+int findLowestScoreNode(std::vector<GraphNode> * list_of_all_nodes, std::vector<unsigned int> * list_of_indices)
 {
 	float current_f_score;
 	// Assumes that at least one f score is less than INFINITY_APPROX, and to be fair they all should be
@@ -150,9 +128,7 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 	GraphNode* goal_node = &graph.back();
 	int goal_node_id = graph.back().id;
 
-	ROS_INFO("Graph size = %lu, last element neighbor count = %lu", graph.size(), graph.back().nearbyNodes.size());
-
-	// Now search graph for path from start to end!!!!!
+	// Now search graph for path from start to end!
 
 	// Add start identification number to the list of unexplored nodes
 	openSet.push_back( begin_node_id );
@@ -165,32 +141,28 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 	while(openSet.size() > 0 && it >= 0)
 	{
 		it++;
-		current_index = findLowestScoreNode_(&graph, &openSet);
+		current_index = findLowestScoreNode(&graph, &openSet);
 
-		ROS_INFO("id = %d, x = %f, y = %f, size(nearbyNodes) = %lu", graph[current_index].id,graph[current_index].point.x, graph[current_index].point.y, graph[current_index].nearbyNodes.size());
+		//ROS_INFO("id = %d, x = %f, y = %f, size(nearbyNodes) = %lu", graph[current_index].id,graph[current_index].point.x, graph[current_index].point.y, graph[current_index].nearbyNodes.size());
 
 		if(graph[current_index].id == goal_node->id)
 		{
-			ROS_INFO("SUCCESS in ID MATCHING; current == goal is true");
-			// REBUILD AND STORE PATH HERE BASED ON GRAPH MAP AND CAME FROM! Push to a vector
+			// Rebuild path because we are done, and make a point cloud based on it, too
 			while(current_index != begin_node_id)
 			{
 				finalPath.push_back(current_index);
 				current_index = graph[current_index].cameFrom;
+				graph[current_index].point.z = 0.03; // Just so it shows up above the rest of the map and graph stuff in Rviz
 				pathCloud.push_back(graph[current_index].point);
-
 			}
-			// Sure why not
-			pathCloud.header.frame_id = "rot";
 			break;
 		}
 		else
 		{
 			//ROS_INFO("Not yet at goal node");
-			//openSet.erase( openSet.begin() + current_index );
 			if(!removeFromVectorByValue(&openSet, current_index))
 			{
-				ROS_WARN("FUCK");
+				ROS_WARN("Couldn't remove value at some index from given vector set!");
 			}
 
 			closedSet.push_back(current_index);
@@ -204,7 +176,6 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 			//ROS_INFO("Analyzing node neighbor #%d", neighbor_index);
 			if(listHasIdentifier(neighbor_index, &closedSet))
 			{
-				ROS_INFO("...node was in closed set list");
 				continue;
 			}
 
@@ -229,8 +200,6 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 			graph[neighbor_index].cameFrom = current_index;
 			graph[neighbor_index].gScore = tentative_gScore;
 			graph[neighbor_index].fScore = tentative_gScore + nodeDistance(graph[neighbor_index], *goal_node);
-			//ROS_INFO("done with a single current node neighbor!");
 		}
-	ROS_INFO("Done with each current node neighbor!");
 	}
 }
