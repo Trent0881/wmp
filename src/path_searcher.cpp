@@ -4,6 +4,7 @@
 
 #include <wmp/path_searcher.h>
 
+// Various helpter function for the path searcher class to use for A* algorithm
 bool addNodeToList(std::vector<GraphNode> * graph_node_list, GraphNode new_node, GoodGrid * grid)
 {
 	float node_distance;
@@ -123,10 +124,8 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 	}
 
 	GraphNode* goal_node = &graph.back();
-	int goal_node_id = graph.back().id;
 
-	// Now search graph for path from start to end!
-
+	// Now search graph for path from start to end using A*!
 	// Add start identification number to the list of unexplored nodes
 	openSet.push_back( begin_node_id );
 
@@ -134,13 +133,10 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 	int neighbor_index;
 
 	float tentative_gScore;
-	int it = 0;
-	while(openSet.size() > 0 && it >= 0)
-	{
-		it++;
-		current_index = findLowestScoreNode(&graph, &openSet);
 
-		//ROS_INFO("id = %d, x = %f, y = %f, size(nearbyNodes) = %lu", graph[current_index].id,graph[current_index].point.x, graph[current_index].point.y, graph[current_index].nearbyNodes.size());
+	while(openSet.size() > 0)
+	{
+		current_index = findLowestScoreNode(&graph, &openSet);
 
 		if(graph[current_index].id == goal_node->id)
 		{
@@ -156,21 +152,18 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 		}
 		else
 		{
-			//ROS_INFO("Not yet at goal node");
 			if(!removeFromVectorByValue(&openSet, current_index))
 			{
 				ROS_WARN("Couldn't remove value at some index from given vector set!");
 			}
 
 			closedSet.push_back(current_index);
-			//ROS_INFO("Added current node to closed set");
 		}
 
 		for(int i = 0; i < graph[current_index].nearbyNodes.size(); i++)
 		{
 			//ROS_INFO("Current node's neighbor #%d has id #%d", i, graph[current_index].nearbyNodes[i].distantNode->id);
 			neighbor_index = graph[current_index].nearbyNodes[i].distantNode->id;
-			//ROS_INFO("Analyzing node neighbor #%d", neighbor_index);
 			if(listHasIdentifier(neighbor_index, &closedSet))
 			{
 				continue;
@@ -178,21 +171,15 @@ PathSearcher::PathSearcher(std::vector<GraphNode> graph, Point start_point, Poin
 
 			tentative_gScore = graph[current_index].gScore + nodeDistance(graph[neighbor_index], *goal_node);
 
-			//ROS_INFO("tentative_gScore of %f found for this neigbor", tentative_gScore);
-			//ROS_INFO("Checking if neighbor is in open set");
-
 			if(!listHasIdentifier(neighbor_index, &openSet))
 			{
-				//ROS_INFO("Adding to open set because was not in it");
 				openSet.push_back(neighbor_index);
 			}
 			else if (tentative_gScore >= graph[neighbor_index].gScore)
 			{
-				//ROS_INFO("Continuing because node was in list, but tentative_gScore >= neighbor G Score");
 				continue;
 			}
-			//ROS_INFO("Neighbor node was in list, but had better g score than tentative_gScore, so good path, updating g scores!");
-			
+
 			// Then this is best path so far!
 			graph[neighbor_index].cameFrom = current_index;
 			graph[neighbor_index].gScore = tentative_gScore;

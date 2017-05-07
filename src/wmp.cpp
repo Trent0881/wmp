@@ -1,16 +1,16 @@
 // Wobbler Motion Planning node
 // Created April 14 2017 by Trent Ziemer
-// Last updated May 5 2017 by Trent Ziemer
+// Last updated May 7 2017 by Trent Ziemer
+
+// File IO for C++
+#include <iostream>
+#include <fstream>
 
 // WMP-specific custom libraries for object
 #include <wmp/common.h>
 #include <wmp/point_filter.h>
 #include <wmp/cloud_compressor.h>
 #include <wmp/path_searcher.h> //(which includes grid and free_space_graph)
-
-// File IO for C++
-#include <iostream>
-#include <fstream>
 
 // Point cloud of sensor measurements to be used to make our sensor model of parameters
 PointCloud g_point_cloud_data;
@@ -38,6 +38,7 @@ bool getDataFromFile(std::string filename)
     float y;
     while(input_data >> value)
     {
+    	// Use a state machine to cycle through x, y, then z
         if(getting_x)
         {
         	x = value;
@@ -140,7 +141,7 @@ int main(int argc, char **argv)
 
 	Point goal_point(goal_point_x, goal_point_y, 0);
 
-	float connection_radius = (float)5/cells_per_side;
+	float connection_radius = (float)10/cells_per_side;
 	int grid_cells_per_side = 200;
 	float x_offset = -2.5;
 	float y_offset = -2.5;

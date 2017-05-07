@@ -9,17 +9,19 @@ FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per
 {
 	int grid_index_x;
 	int grid_index_y;
-	occupancy_threshold = 1; // 1 to 100
 	float position_x;
 	float position_y;
-	bool random = true;
 	int node_master_id = 0;
-	srand(time(NULL));
+	
 	gridPtr = grid;
+	occupancy_threshold = 1; // 1 to 100
 
+	bool random = false;
 	if(random)
 	{
-		for(int i = 0; i < 4000 ; i++)
+		srand(time(NULL));
+		// 5000 takes a while but is pretty good
+		for(int i = 0; i < 5000 ; i++)
 		{
 			grid_index_x = rand() % grid->vertical_cell_count;
 			grid_index_y = rand() % grid->horizontal_cell_count;
@@ -29,10 +31,6 @@ FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per
 
 			if(grid->data[grid_index_x][grid_index_y] < occupancy_threshold)
 			{
-				//ROS_INFO("Have a node %d pos = (%f, %f) or [%d, %d].", i, position_x, position_y, grid_index_x, grid_index_y);
-				//ROS_INFO("   with hcc = %d, vcc = %d", grid->horizontal_cell_count, grid->vertical_cell_count);
-				//ROS_INFO("   and cpr = %d, cpc = %d", cells_per_row, cells_per_column);
-				//ROS_INFO("   and height = %f, width = %f", grid->height, grid->width);
 				nodeList.push_back(GraphNode(grid_index_x, grid_index_y, position_x, position_y, node_master_id));
 				node_master_id++;
 			}	
@@ -88,8 +86,6 @@ bool FreeSpaceGraph::connectNodes(float connectivity_distance)
 			if(i != j)
 			{
 				// For any two distinct nodes in our area with indices i and j...
-				//ROS_INFO("Conn dist = %f, grid res = %f, cd/gs = %f", connectivity_distance, grid_resolution, connectivity_distance/grid_resolution);
-				//ROS_INFO("Checking conn btwn: (");
 				node_distance = nodeList[i].checkConnectivity(nodeList[j], gridPtr, connectivity_distance, occupancy_threshold);
 				
 				// If the nodes have a positive distance associated between them because they are within the connectivity distance...
@@ -112,7 +108,6 @@ PointCloud FreeSpaceGraph::createEdgeCloud()
 		for(int j = 0; j < nodeList[i].nearbyNodes.size(); j++)
 		{
 			//ROS_INFO("--- #%d node %d at (%f, %f)", j, nodeList[i].nearbyNodes[j].distantNode->id, nodeList[i].nearbyNodes[j].distantNode->point.x, nodeList[i].nearbyNodes[j].distantNode->point.y);
-			
 			PointCloud edge_cloud = generateCloudLine(nodeList[i].point.x, nodeList[i].point.y, nodeList[i].nearbyNodes[j].distantNode->point.x, nodeList[i].nearbyNodes[j].distantNode->point.y);
 			
 			for(int k = 0; k < edge_cloud.size(); k++)
@@ -169,14 +164,10 @@ float GraphNode::checkConnectivity(GraphNode distantNode, GoodGrid * gridPtr, fl
 			//ROS_INFO("Line cloud pt (%f, %f); accessing (%d, %d)", lineCloud[i].x, lineCloud[i].y, a ,b);
 			if(gridPtr->data[a][b] > connectivity_threshold)
 			{
-				//ROS_INFO("Obstacle at [%d %d] @ (%f %f)", a, b, lineCloud[i].x,  lineCloud[i].y);
-				//g_bad_nodes.push_back(point); ///???
-				//g_bad_nodes_two.push_back(distantNode.point); ///???
 				return -1;
 			}
 		}
 
-		//ROS_INFO("Path of distance %f found!", distance);
 		return distance;
 	}
 }
@@ -186,10 +177,10 @@ bool GraphNode::addEdge(GraphNode * distantNode, float weight)
 {
 	//ROS_INFO("Adding edge between (%f, %f) and (%f, %f): d = %f or %f.", x, y, distantNode->x, distantNode->y, sqrt(pow((distantNode->x - x),2) + pow((distantNode->y - y),2)), weight);
 	nearbyNodes.push_back(GraphEdge(distantNode, weight));
-	//distantNode->addEdge ???
 	return true;
 }
 
+// Found online!
 bool isIntersecting(GraphNode p1, GraphNode p2, GraphNode q1, GraphNode q2) {
     return (((q1.x-p1.x)*(p2.y-p1.y) - (q1.y-p1.y)*(p2.x-p1.x))
             * ((q2.x-p1.x)*(p2.y-p1.y) - (q2.y-p1.y)*(p2.x-p1.x)) < 0)
