@@ -19,7 +19,7 @@ FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per
 
 	if(random)
 	{
-		for(int i = 0; i < (grid->horizontal_cell_count * grid->vertical_cell_count) ; i++)
+		for(int i = 0; i < 4000 ; i++)
 		{
 			grid_index_x = rand() % grid->vertical_cell_count;
 			grid_index_y = rand() % grid->horizontal_cell_count;
@@ -42,7 +42,7 @@ FreeSpaceGraph::FreeSpaceGraph(GoodGrid * grid, int cells_per_row, int cells_per
 	{
 		for(int i = 0; i < cells_per_column; i++)
 		{
-			grid_index_x = static_cast<int>(round(i * grid->vertical_cell_count  / cells_per_column)); /// grid->horizontal_resolution);
+			grid_index_x = static_cast<int>(round(i * grid->vertical_cell_count  / cells_per_column));
 			for(int j = 0; j <  cells_per_row; j++)
 			{
 				grid_index_y = static_cast<int>(round(j * grid->horizontal_cell_count / cells_per_row));

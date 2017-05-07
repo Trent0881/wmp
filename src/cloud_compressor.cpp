@@ -72,8 +72,6 @@ bool CloudCompressor::compressToGrid()
 
 	obstacle_grid.info.resolution = grid_width/obstacle_grid.info.width;
 
-	ROS_INFO("Resolution (probs width based) is %f", obstacle_grid.info.resolution);
-
 	const float cell_size_x = grid_width/obstacle_grid.info.width;
 	const float cell_size_y = cell_size_x; // This is a forcing thing, so it is square not rectangular. Not happy about it.
 
@@ -84,7 +82,7 @@ bool CloudCompressor::compressToGrid()
 
 	int points_in_cell;
 
-	ROS_INFO("Cloud size: %lu", compressed_cloud.points.size());
+	ROS_INFO("Map of obstacles point cloud size: %lu", compressed_cloud.points.size());
 	
 	float x_max = (float) obstacle_grid.info.width;
 	float x_min = - (float) obstacle_grid.info.width;

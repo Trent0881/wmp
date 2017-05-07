@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 
 	Point goal_point(goal_point_x, goal_point_y, 0);
 
-	float connection_radius = (float)10/cells_per_side;
+	float connection_radius = (float)5/cells_per_side;
 	int grid_cells_per_side = 200;
 	float x_offset = -2.5;
 	float y_offset = -2.5;
