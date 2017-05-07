@@ -114,7 +114,40 @@ int main(int argc, char **argv)
 		ROS_WARN("FAILED to get file data!");
 	}
 
-	CloudCompressor cloudCompressor(200, 200, -2.5, -2.5);
+	float start_point_x;
+	float start_point_y;
+	float goal_point_x;
+	float goal_point_y;
+	int cells_per_side;
+
+	if(!nh_ptr->getParam("start_point_x", start_point_x))
+	{
+	}
+	if(!nh_ptr->getParam("start_point_y", start_point_y))
+	{
+	}
+	if(!nh_ptr->getParam("goal_point_x", goal_point_x))
+	{
+	}
+	if(!nh_ptr->getParam("goal_point_y", goal_point_y))
+	{
+	}
+	if(!nh_ptr->getParam("cells_per_side", cells_per_side))
+	{
+	}
+
+	Point start_point(start_point_x, start_point_y, 0);
+
+	Point goal_point(goal_point_x, goal_point_y, 0);
+
+	float connection_radius = (float)10/cells_per_side;
+	int grid_cells_per_side = 200;
+	float x_offset = -2.5;
+	float y_offset = -2.5;
+	float new_x_offset = x_offset + (0.5)*(5/(float)cells_per_side) - (0.5)*(5/(float)grid_cells_per_side);
+	float new_y_offset = y_offset + (0.5)*(5/(float)cells_per_side) + (0.5)*(5/(float)grid_cells_per_side);
+
+	CloudCompressor cloudCompressor(grid_cells_per_side, grid_cells_per_side, new_x_offset, new_y_offset);
 	
 	if(!cloudCompressor.setCloud(g_filtered_cloud))
 	{
@@ -133,16 +166,14 @@ int main(int argc, char **argv)
 
 	ROS_INFO("Building planning graph object");
 
-	GoodGrid grid = GoodGrid(cloudCompressor.getGrid());
+	GoodGrid grid = GoodGrid(cloudCompressor.getGrid(), connection_radius);
 
-	int cells_per_side = 50;
 	FreeSpaceGraph planningGraph(&grid, cells_per_side, cells_per_side);
 	
 	PointCloud sample_points = planningGraph.getPointCloud();
 
 	ROS_INFO("Connecting nodes on graph");
 
-	float connection_radius = (float)10/cells_per_side;
 	planningGraph.connectNodes(connection_radius);
 
 	ROS_INFO("Checking node consistency across edges!");
@@ -151,7 +182,7 @@ int main(int argc, char **argv)
 
 	ROS_INFO("Building node-based pathway planner");
 
-	PathSearcher pathway(planningGraph.getNodes(), Point(0.3, 1.5, 0), Point(1.1, -1.1, 0), &grid); //Point(1.1, -1.1, 0)
+	PathSearcher pathway(planningGraph.getNodes(), start_point, goal_point, &grid, cells_per_side);
 
 	ROS_INFO("Creating graph edge clouds");
 
@@ -171,7 +202,7 @@ int main(int argc, char **argv)
    	
    	ros::Publisher path_pub = nh.advertise<sensor_msgs::PointCloud2>("pathway", 1);
 
-   	int time_to_pub = 100;
+   	int time_to_pub = 100; // approximately seconds
 	ros::Rate count_rate(2); 
 	int count = 0;
 

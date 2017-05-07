@@ -1,4 +1,8 @@
 <launch> 
+	<!--Wobbler Motion Planning Launch File
+		Created by Trent Ziemer
+		Last updated May 7 2017 by Trent Ziemer -->
+   											
 	<!-- Start point cloud rosbag play to provide data
 	<node pkg="rosbag" type="play" name="rosbag_babs_record"  args="/home/mordoc/ROSBAG_NAME">
 		<remap from="/front_wobbler/point_cloud" to="" />
@@ -6,7 +10,11 @@
 
 	<node pkg="wmp" type="wmp" name="wmp" output="screen">
 		<param name="filename" value="/home/mordoc/data/oakland3_data.csv" />
-
+		<param name="start_point_x" value="2" />	
+		<param name="start_point_y" value="1.5" />
+		<param name="goal_point_x" value="2.1" />
+		<param name="goal_point_y" value="-1" />
+		<param name="cells_per_side" value="40" />
 	</node>
 
 	<node pkg="rviz" type="rviz" name="rviz" args="-d /home/mordoc/ros_ws/src/wmp/rviz/wmp.rviz">

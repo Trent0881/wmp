@@ -7,7 +7,7 @@
 class GoodGrid
 {
 public:
-	GoodGrid(Grid);
+	GoodGrid(Grid, float);
 
 	std::vector< std::vector< int > > data;
 
@@ -16,4 +16,6 @@ public:
 
 	int horizontal_cell_count;
 	int vertical_cell_count;
+
+	float connectivity_distance;
 };

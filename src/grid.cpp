@@ -4,7 +4,7 @@
 
 #include <wmp/grid.h>
 
-GoodGrid::GoodGrid(Grid occupancy_grid)
+GoodGrid::GoodGrid(Grid occupancy_grid, float connectivity)
 {
 	std::vector<int> row_vector;
 	int j = 0;
@@ -32,6 +32,8 @@ GoodGrid::GoodGrid(Grid occupancy_grid)
 	{
 		assert(data[i].size() == occupancy_grid.info.width);
 	}
+
+	connectivity_distance = connectivity;
 
 	horizontal_cell_count = occupancy_grid.info.width;
 	vertical_cell_count = occupancy_grid.info.height;

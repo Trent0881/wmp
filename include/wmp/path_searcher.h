@@ -9,7 +9,7 @@ class PathSearcher
 {
 public:
 
-	PathSearcher(std::vector<GraphNode>, Point, Point, GoodGrid*);
+	PathSearcher(std::vector<GraphNode>, Point, Point, GoodGrid*, int);
 	std::vector<unsigned int> finalPath;
 	PointCloud pathCloud;
 
